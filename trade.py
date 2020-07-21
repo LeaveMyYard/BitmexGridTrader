@@ -11,8 +11,12 @@ from sourse.logger import init_logger
 
 
 class MarketMaker:
+    """This class encapsulates a handler and starts a marketmaking bot."""
+
     @dataclass
     class Settings:
+        """The settings object for the marketmaker bot."""
+
         orders_pairs: int
         orders_start_size: int
         order_step_size: int
@@ -28,22 +32,30 @@ class MarketMaker:
 
     @staticmethod
     async def minute_start(): # TODO as period_start()
+        """minute_start will be working until a new minute starts."""
         while round(time.time() % 60, 2) != 0:
             pass
 
     def __init__(self, pair_name: str, handler: AbstractExchangeHandler, settings: MarketMaker.Settings):
+        """__init__ Create a new MarketMaker bot.
+
+        Args:
+            pair_name (str): [description]
+            handler (AbstractExchangeHandler): [description]
+            settings (MarketMaker.Settings): [description]
+        """
         self.pair_name = pair_name
         self.handler = handler
         self.settings = settings
         self.position = MarketMaker.Position()
-        self.balance = 0.0115
+        self.balance = 0.0102
 
         self.logger = init_logger(self.__class__.__name__)
 
         self._current_orders: typing.Dict[str, str] = {}
         self._current_price: typing.Optional[float] = None
 
-    def on_order_filled(self, order: AbstractExchangeHandler.OrderUpdate):
+    def _on_order_filled(self, order: AbstractExchangeHandler.OrderUpdate):
         if self.position.volume == 0:
             self.position.volume = order.volume
             self.position.price = order.average_price
@@ -61,7 +73,7 @@ class MarketMaker:
 
         self.balance -= order.fee
 
-    def on_user_update(self, data: AbstractExchangeHandler.UserUpdate):
+    def _on_user_update(self, data: AbstractExchangeHandler.UserUpdate):
         if isinstance(data, AbstractExchangeHandler.OrderUpdate):
             self._current_orders[data.orderID] = data.status
             self.logger.debug("Order %s (%s;%s): %s", data.orderID, data.price, data.volume, data.status)
@@ -69,14 +81,14 @@ class MarketMaker:
             if data.status == "CANCELED" or data.status == "FILLED":
                 del self._current_orders[data.orderID]
                 if data.status == "FILLED":
-                    self.on_order_filled(data)
+                    self._on_order_filled(data)
 
                 self.logger.info("Balance: %s, Position: %s, %s", self.balance, self.position.price, self.position.volume)
 
-    def on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
+    def _on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
         self._current_price = data.price
 
-    async def create_order(self, price: float, volume: float):
+    async def _create_order(self, price: float, volume: float):
         order_data: AbstractExchangeHandler.NewOrderData = await self.handler.create_order(self.pair_name, "Buy" if volume > 0 else "Sell", price, abs(volume))
         self._current_orders[order_data.orderID] = "New"
 
@@ -85,16 +97,16 @@ class MarketMaker:
         self.logger.debug("Creating grid from current price (%s)", self._current_price)
         for i in range(self.settings.orders_pairs):
             if self.position.volume < self.settings.max_position:
-                price = self._current_price + self.settings.min_spread // 2 + i * self.settings.interval
-                price = round(int(price * 2) / 2, 1)
-                volume = self.settings.orders_start_size + self.settings.order_step_size * i
-                orders.append(self.create_order(price, volume))
-
-            if self.position.volume > self.settings.min_position:
                 price = self._current_price - (self.settings.min_spread // 2 + i * self.settings.interval)
                 price = round(int(price * 2) / 2, 1)
+                volume = self.settings.orders_start_size + self.settings.order_step_size * i
+                orders.append(self._create_order(price, volume))
+
+            if self.position.volume > self.settings.min_position:
+                price = self._current_price + (self.settings.min_spread // 2 + i * self.settings.interval)
+                price = round(int(price * 2) / 2, 1)
                 volume = -(self.settings.orders_start_size + self.settings.order_step_size * i)
-                orders.append(self.create_order(price, volume))
+                orders.append(self._create_order(price, volume))
 
         await asyncio.gather(*orders)
 
@@ -104,8 +116,9 @@ class MarketMaker:
         await asyncio.gather(*[self.handler.cancel_order(order) for order in self._current_orders])
 
     async def start(self):
-        self.handler.start_user_update_socket_threaded(self.on_user_update)
-        self.handler.start_price_socket_threaded(self.on_price_changed, self.pair_name)
+        """Start the marketmaker bot."""
+        self.handler.start_user_update_socket_threaded(self._on_user_update)
+        self.handler.start_price_socket_threaded(self._on_price_changed, self.pair_name)
 
         await asyncio.sleep(2)
 
@@ -120,6 +133,6 @@ if __name__ == "__main__":
     handler = BitmexExchangeHandler(
         "VMWmsl1N-EZtSB8HjLmgv4GQ", "kJIvv60NCZu-mFWnxsrOeOAGB4VaEphnEZEZKdzISmZkc5wv"
     )
-    settings = MarketMaker.Settings(2, 99, 100, 0.5, 1.5, -30, 30)
+    settings = MarketMaker.Settings(1, 25, 0, 3, 4, -100, 100)
     market_maker = MarketMaker("XBTUSD", handler, settings)
     asyncio.run(market_maker.start())

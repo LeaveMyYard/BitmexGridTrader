@@ -344,6 +344,7 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
             orderQty=volume,
             price=price,
             ordType="Limit",
+            execInst='ParticipateDoNotInitiate'
         ).result()[0]
 
         return AbstractExchangeHandler.NewOrderData(orderID=result["orderID"], client_orderID=result["clOrdID"])
