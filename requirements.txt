@@ -1,0 +1,3 @@
+bitmex
+websocket_client
+colorlog
