@@ -8,6 +8,7 @@ import json
 import threading
 import time
 import typing
+import random
 import urllib
 from dataclasses import dataclass
 from datetime import datetime
@@ -120,13 +121,23 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         ...
 
     @abc.abstractmethod
+    async def create_orders(
+        self, symbol: str, data: typing.List[typing.Tuple[str, float, float]]
+    ) -> typing.List[AbstractExchangeHandler.NewOrderData]:
+        ...
+
+    @abc.abstractmethod
     async def cancel_order(self, order_id: int) -> None:
+        ...
+
+    @abc.abstractmethod
+    async def cancel_orders(self, orders: typing.List[int]) -> None:
         ...
 
     @staticmethod
     def generate_client_order_id() -> str:
         return base64.b32encode(
-            hashlib.sha1(bytes(str(datetime.now()), "utf-8")).digest()
+            hashlib.sha1(bytes(str(datetime.now()) + str(random.randint(0, 1000)), "utf-8")).digest()
         ).decode("ascii")
 
 
@@ -338,7 +349,6 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
         self, symbol: str, side: str, price: float, volume: float
     ) -> AbstractExchangeHandler.NewOrderData:
         result = self._client.Order.Order_new(
-            clOrdID=self.generate_client_order_id(),
             symbol=symbol,
             side=side,
             orderQty=volume,
@@ -349,5 +359,28 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
 
         return AbstractExchangeHandler.NewOrderData(orderID=result["orderID"], client_orderID=result["clOrdID"])
 
+    async def create_orders(
+        self, symbol: str, data: typing.List[typing.Tuple[str, float, float]]
+    ) -> typing.List[AbstractExchangeHandler.NewOrderData]:
+        orders = [
+            dict(
+                symbol=symbol, 
+                side=order_data[0], 
+                orderQty=order_data[2], 
+                price=order_data[1], 
+                ordType="Limit",
+                execInst='ParticipateDoNotInitiate'
+            ) 
+            for order_data in data
+        ]
+        results = self._client.Order.Order_newBulk(
+            orders=json.dumps(orders)
+        ).result()[0]
+
+        return [AbstractExchangeHandler.NewOrderData(orderID=result["orderID"], client_orderID=result["clOrdID"]) for result in results]
+
     async def cancel_order(self, order_id: int) -> None:
         self._client.Order.Order_cancel(orderID=order_id).result()
+
+    async def cancel_orders(self, orders: typing.List[int]) -> None:
+        self._client.Order.Order_cancel(orderID=json.dumps(orders)).result()
