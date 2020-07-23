@@ -112,6 +112,20 @@ class MarketMaker:
                     self.position.volume,
                 )
 
+        elif isinstance(data, AbstractExchangeHandler.PositionUpdate):
+            if data.size != self.position.volume:
+                self.logger.warning(
+                    "Position, got from server differes with the calculated one: (%s; %s) vs (%s; %s)",
+                    data.entry_price,
+                    data.size,
+                    self.position.price,
+                    self.position.volume,
+                )
+
+        elif isinstance(data, AbstractExchangeHandler.BalanceUpdate):
+            self.balance = data.balance
+            self.logger.debug("Updated balance from server: %s", self.balance)
+
     def _on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
         self._current_price = data.price
 

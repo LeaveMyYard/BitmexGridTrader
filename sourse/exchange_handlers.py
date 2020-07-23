@@ -1,3 +1,9 @@
+"""
+    This module contains an abstract class for speaking with 
+    the cryptocurrency exchange (AbstractExchangeHandler)
+    and the implementation for Bitmex (BitmexExchangeHandler)
+"""
+
 from __future__ import annotations
 
 import abc
@@ -12,6 +18,7 @@ import typing
 import urllib
 from dataclasses import dataclass
 from datetime import datetime
+import collections
 
 import bitmex
 import websocket
@@ -69,7 +76,19 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         time: datetime
         message: typing.Any
 
-    UserUpdate = typing.Union[OrderUpdate]
+    @dataclass
+    class PositionUpdate:
+        symbol: str
+        size: float
+        value: float
+        entry_price: float
+        liquidation_price: float
+
+    @dataclass
+    class BalanceUpdate:
+        balance: float
+
+    UserUpdate = typing.Union[OrderUpdate, PositionUpdate]
 
     @abc.abstractmethod
     def start_user_update_socket(
@@ -281,12 +300,101 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
         result = ws.recv()
 
         # Send a request that requires authorization.
-        request = {"op": "subscribe", "args": "order"}
+        request = {"op": "subscribe", "args": ["order", "position", "margin"]}
         ws.send(json.dumps(request))
 
-        _update_dict: typing.Mapping[str, typing.Dict[str, typing.Any]] = {}
+        _order_table: typing.Dict[str, typing.Dict[str, typing.Any]] = {}
 
-        cst: typing.Dict[str, float] = {"XBTUSD": 10 ** -8}
+        cst: typing.DefaultDict[str, float] = collections.defaultdict(
+            lambda: 1, {"XBTUSD": 10 ** -8}
+        )
+
+        def __process_order_update(msg):
+            for data in msg["data"]:
+                if data["orderID"] not in _order_table:
+                    _order_table[data["orderID"]] = {}
+
+                for key, value in data.items():
+                    _order_table[data["orderID"]][key] = value
+
+            if "action" in msg and (
+                msg["action"] == "insert" or msg["action"] == "update"
+            ):
+                for data in msg["data"]:
+                    if "ordStatus" not in data:
+                        continue
+                    fee_payed = 0
+                    if data["ordStatus"] == "Filled":
+                        pair_name = "XBTUSD"
+                        corresponding_trades = self._client.Execution.Execution_getTradeHistory(
+                            symbol=pair_name,
+                            filter=json.dumps({"orderID": data["orderID"]}),
+                        ).result()[
+                            0
+                        ]
+                        fee_payed = sum(
+                            [
+                                trade["execComm"] * cst[pair_name]
+                                for trade in corresponding_trades
+                            ]
+                        )
+
+                    order_data = _order_table[data["orderID"]]
+
+                    volume_side = 1 if order_data["side"] == "Buy" else -1
+
+                    dic = {
+                        "orderID": order_data["orderID"],
+                        "client_orderID": order_data["clOrdID"],
+                        "status": order_data["ordStatus"].upper(),
+                        "price": order_data["price"],
+                        "average_price": order_data["avgPx"]
+                        if "avgPx" in order_data and order_data["avgPx"] is not None
+                        else None,
+                        "fee": fee_payed,
+                        "fee_asset": "XBT",
+                        "volume_realized": order_data["cumQty"] * volume_side
+                        if "cumQty" in order_data and order_data["cumQty"] is not None
+                        else 0,
+                        "volume": order_data["orderQty"] * volume_side,
+                        "time": datetime.strptime(
+                            order_data["timestamp"][:-1] + "000",
+                            "%Y-%m-%dT%H:%M:%S.%f",
+                        ),
+                        "message": order_data,
+                    }
+
+                    if dic["status"] == "PARTIALLYFILLED":
+                        dic["status"] = "PARTIALLY_FILLED"
+
+                    on_update(AbstractExchangeHandler.OrderUpdate(**dic))
+
+        _position_table: typing.Dict[str, typing.Dict[str, typing.Any]] = {}
+
+        def __process_position_update(msg):
+            for data in msg["data"]:
+                symbol = data["symbol"]
+                if symbol not in _position_table:
+                    _position_table[symbol] = {}
+
+                for key, value in data.items():
+                    _position_table[symbol][key] = value
+
+                position = _position_table[symbol]
+
+                on_update(
+                    AbstractExchangeHandler.PositionUpdate(
+                        symbol=symbol,
+                        size=position["currentQty"],
+                        value=round(
+                            position["currentQty"] / position["avgCostPrice"], 8
+                        )
+                        if position["avgCostPrice"] != None
+                        else None,
+                        entry_price=position["avgCostPrice"],
+                        liquidation_price=position["liquidationPrice"],
+                    )
+                )
 
         def __process_msg(msg):
             try:
@@ -294,66 +402,24 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
             except:
                 return
 
-            if "data" in msg:
-                for data in msg["data"]:
-                    if data["orderID"] not in _update_dict:
-                        _update_dict[data["orderID"]] = {}
+            if "table" not in msg:
+                return
 
-                    for key, value in data.items():
-                        _update_dict[data["orderID"]][key] = value
+            # Process order update table
+            if msg["table"] == "order" and "data" in msg:
+                __process_order_update(msg)
 
-                if "action" in msg and (
-                    msg["action"] == "insert" or msg["action"] == "update"
-                ):
-                    for data in msg["data"]:
-                        if "ordStatus" not in data:
-                            continue
-                        fee_payed = 0
-                        if data["ordStatus"] == "Filled":
-                            pair_name = "XBTUSD"
-                            corresponding_trades = self._client.Execution.Execution_getTradeHistory(
-                                symbol=pair_name,
-                                filter=json.dumps({"clOrdID": data["clOrdID"]}),
-                            ).result()[
-                                0
-                            ]
-                            fee_payed = sum(
-                                [
-                                    trade["execComm"] * cst[pair_name]
-                                    for trade in corresponding_trades
-                                ]
-                            )
+            # Process position update table
+            if msg["table"] == "position" and "data" in msg:
+                # print(json.dumps(msg, indent=4))
+                __process_position_update(msg)
 
-                        order_data = _update_dict[data["orderID"]]
-
-                        volume_side = 1 if order_data["side"] == "Buy" else -1
-
-                        dic = {
-                            "orderID": order_data["orderID"],
-                            "client_orderID": order_data["clOrdID"],
-                            "status": order_data["ordStatus"].upper(),
-                            "price": float(order_data["price"]),
-                            "average_price": float(order_data["avgPx"])
-                            if "avgPx" in order_data and order_data["avgPx"] is not None
-                            else None,
-                            "fee": fee_payed,
-                            "fee_asset": "XBT",
-                            "volume_realized": float(order_data["cumQty"]) * volume_side
-                            if "cumQty" in order_data
-                            and order_data["cumQty"] is not None
-                            else 0,
-                            "volume": float(order_data["orderQty"]) * volume_side,
-                            "time": datetime.strptime(
-                                order_data["timestamp"][:-1] + "000",
-                                "%Y-%m-%dT%H:%M:%S.%f",
-                            ),
-                            "message": order_data,
-                        }
-
-                        if dic["status"] == "PARTIALLYFILLED":
-                            dic["status"] = "PARTIALLY_FILLED"
-
-                        on_update(AbstractExchangeHandler.OrderUpdate(**dic))
+            if msg["table"] == "margin" and "data" in msg:
+                on_update(
+                    AbstractExchangeHandler.BalanceUpdate(
+                        balance=msg["data"][0]["marginBalance"] * cst["XBTUSD"]
+                    )
+                )
 
         def __ping():
             ws.send("ping")
@@ -369,7 +435,7 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
                 __process_msg(result)
             except Exception as e:
                 self.logger.error(
-                    f"An error happened in user update socket [{e}]: {result}, restarting..."
+                    f"An error happened in user update socket {e.__class__.__name__} {e}: {result}, restarting..."
                 )
                 timer.cancel()
                 self.start_user_update_socket(on_update)
