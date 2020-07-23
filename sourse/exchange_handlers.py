@@ -396,6 +396,20 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
                     )
                 )
 
+        _margin_data: typing.Dict[str, typing.Any] = {}
+
+        def __process_margin_update(msg):
+            data = msg["data"][0]
+
+            for key, value in data.items():
+                _margin_data[key] = value
+
+            on_update(
+                AbstractExchangeHandler.BalanceUpdate(
+                    balance=_margin_data["marginBalance"] * cst["XBTUSD"]
+                )
+            )
+
         def __process_msg(msg):
             try:
                 msg = json.loads(msg)
@@ -411,15 +425,11 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
 
             # Process position update table
             if msg["table"] == "position" and "data" in msg:
-                # print(json.dumps(msg, indent=4))
                 __process_position_update(msg)
 
+            # Process margin update table
             if msg["table"] == "margin" and "data" in msg:
-                on_update(
-                    AbstractExchangeHandler.BalanceUpdate(
-                        balance=msg["data"][0]["marginBalance"] * cst["XBTUSD"]
-                    )
-                )
+                __process_margin_update(msg)
 
         def __ping():
             ws.send("ping")

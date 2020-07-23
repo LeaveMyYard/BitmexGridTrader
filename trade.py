@@ -69,12 +69,11 @@ class MarketMaker:
             or self.position.volume > 0
             and order.volume > 0
         ):
-            self.position.price = (
-                order.average_price * order.volume
-                + self.position.price * self.position.volume
+            self.position.price = (self.position.volume + order.volume) / (
+                order.average_price / order.volume
+                + self.position.price / self.position.volume
             )
             self.position.volume += order.volume
-            self.position.price /= self.position.volume
         elif abs(self.position.volume) >= abs(order.volume):
             self.position.volume += order.volume
             self.balance += order.volume * (
