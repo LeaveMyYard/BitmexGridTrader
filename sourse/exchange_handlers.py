@@ -5,10 +5,10 @@ import base64
 import hashlib
 import hmac
 import json
+import random
 import threading
 import time
 import typing
-import random
 import urllib
 from dataclasses import dataclass
 from datetime import datetime
@@ -16,7 +16,7 @@ from datetime import datetime
 import bitmex
 import websocket
 
-from .logger import init_logger
+from sourse.logger import init_logger
 
 
 class AbstractExchangeHandler(metaclass=abc.ABCMeta):
@@ -51,7 +51,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
     def start_price_socket(
         self,
         on_update: typing.Callable[[AbstractExchangeHandler.PriceCallback], None],
-        pair_name: str
+        pair_name: str,
     ) -> None:
         ...
 
@@ -92,7 +92,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
     def start_price_socket_threaded(
         self,
         on_update: typing.Callable[[AbstractExchangeHandler.PriceCallback], None],
-        pair_name: str
+        pair_name: str,
     ) -> threading.Thread:
         thread = threading.Thread(
             target=self.start_price_socket, args=[on_update, pair_name]
@@ -101,7 +101,10 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         return thread
 
     def start_user_update_socket_threaded(
-        self, on_update: typing.Callable[[typing.Union[AbstractExchangeHandler.OrderUpdate]], None]
+        self,
+        on_update: typing.Callable[
+            [typing.Union[AbstractExchangeHandler.OrderUpdate]], None
+        ],
     ) -> threading.Thread:
         thread = threading.Thread(
             target=self.start_user_update_socket, args=[on_update]
@@ -137,7 +140,9 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
     @staticmethod
     def generate_client_order_id() -> str:
         return base64.b32encode(
-            hashlib.sha1(bytes(str(datetime.now()) + str(random.randint(0, 1000)), "utf-8")).digest()
+            hashlib.sha1(
+                bytes(str(datetime.now()) + str(random.randint(0, 1000)), "utf-8")
+            ).digest()
         ).decode("ascii")
 
 
@@ -151,19 +156,21 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
     @staticmethod
     def bitmex_signature(apiSecret, verb, url, nonce, postdict=None):
         """Given an API Secret key and data, create a BitMEX-compatible signature."""
-        data = ''
+        data = ""
         if postdict:
             # separators remove spaces from json
             # BitMEX expects signatures from JSON built without spaces
-            data = json.dumps(postdict, separators=(',', ':'))
+            data = json.dumps(postdict, separators=(",", ":"))
         parsedURL = urllib.parse.urlparse(url)
         path = parsedURL.path
         if parsedURL.query:
-            path = path + '?' + parsedURL.query
+            path = path + "?" + parsedURL.query
         # print("Computing HMAC: %s" % verb + path + str(nonce) + data)
-        message = (verb + path + str(nonce) + data).encode('utf-8')
+        message = (verb + path + str(nonce) + data).encode("utf-8")
 
-        signature = hmac.new(apiSecret.encode('utf-8'), message, digestmod=hashlib.sha256).hexdigest()
+        signature = hmac.new(
+            apiSecret.encode("utf-8"), message, digestmod=hashlib.sha256
+        ).hexdigest()
         return signature
 
     def __init__(self, public_key, private_key):
@@ -179,14 +186,14 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
         candle_type: str,
         pair_name: str,
     ) -> None:
-
         def __on_message(ws, msg):
             msg = json.loads(msg)
             if "action" in msg and msg["action"] == "insert":
                 data = msg["data"][0]
-                epoch = datetime.utcfromtimestamp(0)
                 data = {
-                    "time": datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.000Z"),
+                    "time": datetime.strptime(
+                        data["timestamp"], "%Y-%m-%dT%H:%M:%S.000Z"
+                    ),
                     "open": data["open"],
                     "high": data["high"],
                     "low": data["low"],
@@ -216,12 +223,12 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
     def start_price_socket(
         self,
         on_update: typing.Callable[[AbstractExchangeHandler.PriceCallback], None],
-        pair_name: str
+        pair_name: str,
     ) -> None:
         def __on_message(ws, msg):
             msg = json.loads(msg)
-            if 'data' in msg and 'lastPrice' in msg['data'][0]:
-                price = msg['data'][0]['lastPrice']
+            if "data" in msg and "lastPrice" in msg["data"][0]:
+                price = msg["data"][0]["lastPrice"]
                 on_update(AbstractExchangeHandler.PriceCallback(price=price))
 
         def __on_error(ws, error):
@@ -235,17 +242,17 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
 
         ws = websocket.WebSocketApp(
             f"{self.domen}/realtime?subscribe=instrument:{pair_name}",
-            on_message = __on_message,
-            on_error = __on_error,
-            on_close = __on_close
+            on_message=__on_message,
+            on_error=__on_error,
+            on_close=__on_close,
         )
         ws.run_forever()
 
     def start_user_update_socket(
         self, on_update: typing.Callable[[AbstractExchangeHandler.UserUpdate], None]
     ) -> None:
-        self.logger.info('Starting user update socket')
-        
+        self.logger.info("Starting user update socket")
+
         # Switch these comments to use testnet instead.
         # BITMEX_URL = "wss://testnet.bitmex.com"
         BITMEX_URL = self.domen
@@ -260,7 +267,9 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
         # and doesn't repeat.
         expires = int(time.time()) + 60 * 60
         # See signature generation reference at https://www.bitmex.com/app/apiKeys
-        signature = BitmexExchangeHandler.bitmex_signature(API_SECRET, VERB, ENDPOINT, expires)
+        signature = BitmexExchangeHandler.bitmex_signature(
+            API_SECRET, VERB, ENDPOINT, expires
+        )
 
         # Initial connection - BitMEX sends a welcome message.
         ws = websocket.create_connection(BITMEX_URL + ENDPOINT)
@@ -277,7 +286,7 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
 
         _update_dict: typing.Mapping[str, typing.Dict[str, typing.Any]] = {}
 
-        cst: typing.Dict[str, float] = {"XBTUSD": 10**-8}
+        cst: typing.Dict[str, float] = {"XBTUSD": 10 ** -8}
 
         def __process_msg(msg):
             try:
@@ -285,48 +294,69 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
             except:
                 return
 
-            if 'data' in msg:
-                for data in msg['data']:
-                    if data['orderID'] not in _update_dict:
-                        _update_dict[data['orderID']] = {}
+            if "data" in msg:
+                for data in msg["data"]:
+                    if data["orderID"] not in _update_dict:
+                        _update_dict[data["orderID"]] = {}
 
                     for key, value in data.items():
-                        _update_dict[data['orderID']][key] = value
+                        _update_dict[data["orderID"]][key] = value
 
-                if 'action' in msg and (msg['action'] == 'insert' or msg['action'] == 'update'):
-                    for data in msg['data']:
-                        if 'ordStatus' in data:
-                            fee_payed = 0
-                            if data['ordStatus'] == 'Filled':
-                                pair_name = "XBTUSD"
-                                corresponding_trades = self._client.Execution.Execution_getTradeHistory(symbol=pair_name, filter=json.dumps({'clOrdID': data['clOrdID']})).result()[0]
-                                fee_payed = sum([trade['execComm'] * cst[pair_name] for trade in corresponding_trades])
+                if "action" in msg and (
+                    msg["action"] == "insert" or msg["action"] == "update"
+                ):
+                    for data in msg["data"]:
+                        if "ordStatus" not in data:
+                            continue
+                        fee_payed = 0
+                        if data["ordStatus"] == "Filled":
+                            pair_name = "XBTUSD"
+                            corresponding_trades = self._client.Execution.Execution_getTradeHistory(
+                                symbol=pair_name,
+                                filter=json.dumps({"clOrdID": data["clOrdID"]}),
+                            ).result()[
+                                0
+                            ]
+                            fee_payed = sum(
+                                [
+                                    trade["execComm"] * cst[pair_name]
+                                    for trade in corresponding_trades
+                                ]
+                            )
 
-                            order_data = _update_dict[data['orderID']]
-                            
-                            volume_side = 1 if order_data['side'] == "Buy" else -1
+                        order_data = _update_dict[data["orderID"]]
 
-                            dic = {
-                                'orderID': order_data['orderID'],
-                                'client_orderID': order_data['clOrdID'],
-                                'status': order_data['ordStatus'].upper(),
-                                'price': float(order_data['price']),
-                                'average_price': float(order_data['avgPx']) if 'avgPx' in order_data and order_data['avgPx'] is not None else None,
-                                'fee': fee_payed,
-                                'fee_asset': 'XBT',
-                                'volume_realized': float(order_data['cumQty']) * volume_side if 'cumQty' in order_data and order_data['cumQty'] is not None else 0,
-                                'volume': float(order_data['orderQty']) * volume_side,
-                                'time': datetime.strptime(order_data['timestamp'][:-1] + '000', '%Y-%m-%dT%H:%M:%S.%f'),
-                                'message': order_data
-                            }
+                        volume_side = 1 if order_data["side"] == "Buy" else -1
 
-                            if dic['status'] == 'PARTIALLYFILLED':
-                                dic['status'] = 'PARTIALLY_FILLED'
+                        dic = {
+                            "orderID": order_data["orderID"],
+                            "client_orderID": order_data["clOrdID"],
+                            "status": order_data["ordStatus"].upper(),
+                            "price": float(order_data["price"]),
+                            "average_price": float(order_data["avgPx"])
+                            if "avgPx" in order_data and order_data["avgPx"] is not None
+                            else None,
+                            "fee": fee_payed,
+                            "fee_asset": "XBT",
+                            "volume_realized": float(order_data["cumQty"]) * volume_side
+                            if "cumQty" in order_data
+                            and order_data["cumQty"] is not None
+                            else 0,
+                            "volume": float(order_data["orderQty"]) * volume_side,
+                            "time": datetime.strptime(
+                                order_data["timestamp"][:-1] + "000",
+                                "%Y-%m-%dT%H:%M:%S.%f",
+                            ),
+                            "message": order_data,
+                        }
 
-                            on_update(AbstractExchangeHandler.OrderUpdate(**dic))
-        
+                        if dic["status"] == "PARTIALLYFILLED":
+                            dic["status"] = "PARTIALLY_FILLED"
+
+                        on_update(AbstractExchangeHandler.OrderUpdate(**dic))
+
         def __ping():
-            ws.send('ping')
+            ws.send("ping")
             timer = threading.Timer(10, __ping)
             timer.start()
 
@@ -338,12 +368,12 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
                 result = ws.recv()
                 __process_msg(result)
             except Exception as e:
-                self.logger.error(f"An error happened in user update socket [{e}]: {result}, restarting...")
+                self.logger.error(
+                    f"An error happened in user update socket [{e}]: {result}, restarting..."
+                )
                 timer.cancel()
-                raise
                 self.start_user_update_socket(on_update)
                 break
-
 
     async def create_order(
         self, symbol: str, side: str, price: float, volume: float
@@ -354,30 +384,36 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
             orderQty=volume,
             price=price,
             ordType="Limit",
-            execInst='ParticipateDoNotInitiate'
+            execInst="ParticipateDoNotInitiate",
         ).result()[0]
 
-        return AbstractExchangeHandler.NewOrderData(orderID=result["orderID"], client_orderID=result["clOrdID"])
+        return AbstractExchangeHandler.NewOrderData(
+            orderID=result["orderID"], client_orderID=result["clOrdID"]
+        )
 
     async def create_orders(
         self, symbol: str, data: typing.List[typing.Tuple[str, float, float]]
     ) -> typing.List[AbstractExchangeHandler.NewOrderData]:
         orders = [
             dict(
-                symbol=symbol, 
-                side=order_data[0], 
-                orderQty=order_data[2], 
-                price=order_data[1], 
+                symbol=symbol,
+                side=order_data[0],
+                orderQty=order_data[2],
+                price=order_data[1],
                 ordType="Limit",
-                execInst='ParticipateDoNotInitiate'
-            ) 
+                execInst="ParticipateDoNotInitiate",
+            )
             for order_data in data
         ]
-        results = self._client.Order.Order_newBulk(
-            orders=json.dumps(orders)
-        ).result()[0]
+        results = self._client.Order.Order_newBulk(orders=json.dumps(orders))
+        results = results.result()[0]
 
-        return [AbstractExchangeHandler.NewOrderData(orderID=result["orderID"], client_orderID=result["clOrdID"]) for result in results]
+        return [
+            AbstractExchangeHandler.NewOrderData(
+                orderID=result["orderID"], client_orderID=result["clOrdID"]
+            )
+            for result in results
+        ]
 
     async def cancel_order(self, order_id: int) -> None:
         self._client.Order.Order_cancel(orderID=order_id).result()

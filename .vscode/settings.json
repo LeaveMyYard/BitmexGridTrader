@@ -1,5 +1,8 @@
 {
     "python.pythonPath": "C:\\Users\\blackbox1\\Anaconda3\\envs\\testenv\\python.exe",
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
     "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.banditEnabled": false,
+    "python.linting.prospectorEnabled": false
 }
