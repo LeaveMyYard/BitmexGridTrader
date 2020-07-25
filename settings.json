@@ -10,7 +10,7 @@
     "order_step_size": 50,
     "interval": 0.5,
     "min_spread": 2.5,
-    "stop_loss_fund": 0.01, // Not working yet
+    "stop_loss_fund": 0.01,
     "min_position": -100,
     "max_position": 100
   }

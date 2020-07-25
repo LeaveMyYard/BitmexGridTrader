@@ -201,7 +201,7 @@ def main():
         file_settings["bitmex_client"]["public_key"],
         file_settings["bitmex_client"]["private_key"],
     )
-    settings = MarketMaker.Settings(*file_settings["marketmaker_settings"])
+    settings = MarketMaker.Settings(**file_settings["marketmaker_settings"])
     market_maker = MarketMaker(
         file_settings["bitmex_client"]["pair"], handler, settings
     )
