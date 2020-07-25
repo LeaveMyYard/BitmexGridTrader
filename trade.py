@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+import json
 import typing
 from dataclasses import dataclass
 
@@ -21,6 +22,7 @@ class MarketMaker:
         order_step_size: int
         interval: float
         min_spread: float
+        stop_loss_fund: float
         min_position: int
         max_position: int
 
@@ -194,11 +196,15 @@ class MarketMaker:
 
 
 def main():
+    file_settings = json.load(open("settings.json", "r"))
     handler = BitmexExchangeHandler(
-        "VMWmsl1N-EZtSB8HjLmgv4GQ", "kJIvv60NCZu-mFWnxsrOeOAGB4VaEphnEZEZKdzISmZkc5wv"
+        file_settings["bitmex_client"]["public_key"],
+        file_settings["bitmex_client"]["private_key"],
     )
-    settings = MarketMaker.Settings(10, 25, 50, 0.5, 2.5, -100, 100)
-    market_maker = MarketMaker("XBTUSD", handler, settings)
+    settings = MarketMaker.Settings(*file_settings["marketmaker_settings"])
+    market_maker = MarketMaker(
+        file_settings["bitmex_client"]["pair"], handler, settings
+    )
     asyncio.run(market_maker.start())
 
 
