@@ -182,6 +182,10 @@ class MarketMaker:
         if len(self._current_orders) > 0:
             await self.handler.cancel_orders(list(self._current_orders.keys()))
 
+    async def _update_grid(self):
+        await self._cancel_orders()
+        await self._create_orders()
+
     async def start(self):
         """Start the marketmaker bot."""
         self.handler.start_user_update_socket_threaded(self._on_user_update)
@@ -191,8 +195,7 @@ class MarketMaker:
 
         while True:
             await MarketMaker.minute_start()
-            await self._cancel_orders()
-            await self._create_orders()
+            await self._update_grid()
 
 
 def main():
