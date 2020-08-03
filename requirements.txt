@@ -1,3 +1,5 @@
 bitmex
 websocket_client
 colorlog
+pyqt5
+qdarkstyle
