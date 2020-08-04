@@ -6,704 +6,84 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>757</width>
+    <height>589</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>874</width>
-    <height>720</height>
-   </size>
-  </property>
-  <property name="cursor">
-   <cursorShape>ArrowCursor</cursorShape>
-  </property>
   <property name="windowTitle">
-   <string>Bitmex Market Maker</string>
+   <string>MainWindow</string>
   </property>
-  <property name="windowOpacity">
-   <double>1.000000000000000</double>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>757</width>
+     <height>21</height>
+    </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0">
-    <item>
-     <widget class="QGraphicsView" name="graphicsView">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>800</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-   </layout>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="floating">
-    <bool>false</bool>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Current Settings</string>
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>180</height>
+    </size>
    </property>
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
-     <item>
-      <widget class="QTableWidget" name="tableWidget">
-       <property name="rowCount">
-        <number>6</number>
-       </property>
-       <property name="columnCount">
-        <number>2</number>
-       </property>
-       <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>164</number>
-       </attribute>
-       <attribute name="horizontalHeaderStretchLastSection">
-        <bool>true</bool>
-       </attribute>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <column/>
-       <column/>
-      </widget>
-     </item>
-    </layout>
-   </widget>
+   <widget class="QWidget" name="dockWidgetContents"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_2">
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>180</height>
+    </size>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_5">
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>180</height>
+    </size>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_3">
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Template Settings</string>
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>180</height>
+    </size>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents_3">
-    <widget class="QLabel" name="label_10">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>200</y>
-       <width>82</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Maximal position:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_15">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>181</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_7">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>143</y>
-       <width>74</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Minimal spread:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_14">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>143</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_6">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>124</y>
-       <width>42</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Interval:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_8">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>162</y>
-       <width>72</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Stop loss fund:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_13">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>124</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>67</y>
-       <width>58</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Order pairs:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_16">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>200</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_3">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>162</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_4">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>86</y>
-       <width>84</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Orders start size:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_5">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>105</y>
-       <width>82</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Orders step size:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_11">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>86</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_9">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>181</y>
-       <width>78</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Minimal position:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_12">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>105</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>67</y>
-       <width>250</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-   </widget>
+   <widget class="QWidget" name="dockWidgetContents_6"/>
   </widget>
-  <action name="actionSelect_different_model">
-   <property name="text">
-    <string>Select different model</string>
-   </property>
-  </action>
-  <action name="actionExit">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionClear_console_log">
-   <property name="text">
-    <string>Clear console log</string>
-   </property>
-  </action>
-  <action name="actionClear_console_log_at_start">
-   <property name="text">
-    <string>Clear console log at start</string>
-   </property>
-  </action>
-  <action name="actionClear_console_log_2">
-   <property name="text">
-    <string>Clear console log</string>
-   </property>
-  </action>
-  <action name="actionClear_log_on_start">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Clear log on start</string>
-   </property>
-  </action>
-  <action name="settings_button_classic">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Classic</string>
-   </property>
-  </action>
-  <action name="settings_button_dark">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Dark</string>
-   </property>
-  </action>
-  <action name="settings_button_light">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Light</string>
-   </property>
-  </action>
-  <action name="actionLoad_result">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Load report</string>
-   </property>
-  </action>
-  <action name="volume_adi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Accumulation/Distribution Index (ADI)</string>
-   </property>
-  </action>
-  <action name="volume_obv">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>On-Balance Volume (OBV)</string>
-   </property>
-  </action>
-  <action name="volume_cmf">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Chaikin Money Flow (CMF)
-</string>
-   </property>
-  </action>
-  <action name="volume_fi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Force Index (FI)
-</string>
-   </property>
-  </action>
-  <action name="volume_em">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Ease of Movement (EoM, EMV)
-</string>
-   </property>
-  </action>
-  <action name="volume_vpt">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Volume-price Trend (VPT)
-</string>
-   </property>
-  </action>
-  <action name="volume_nvi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Negative Volume Index (NVI)
-</string>
-   </property>
-  </action>
-  <action name="volatility_atr">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Average True Range (ATR)
-</string>
-   </property>
-  </action>
-  <action name="volatility_bb">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Bollinger Bands (BB)
-</string>
-   </property>
-  </action>
-  <action name="volatility_kc">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Keltner Channel (KC)
-</string>
-   </property>
-  </action>
-  <action name="volatility_dc">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Donchian Channel (DC)
-</string>
-   </property>
-  </action>
-  <action name="trend_macd">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Moving Average Convergence Divergence (MACD)
-</string>
-   </property>
-  </action>
-  <action name="trend_adx">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Average Directional Movement Index (ADX)
-</string>
-   </property>
-  </action>
-  <action name="trend_vortex">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Vortex Indicator (VI)
-</string>
-   </property>
-  </action>
-  <action name="trend_trix">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Trix (TRIX)
-</string>
-   </property>
-  </action>
-  <action name="trend_mass_index">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Mass Index (MI)
-</string>
-   </property>
-  </action>
-  <action name="trend_cci">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Commodity Channel Index (CCI)
-</string>
-   </property>
-  </action>
-  <action name="trend_dpo">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Detrended Price Oscillator (DPO)
-</string>
-   </property>
-  </action>
-  <action name="trend_kst">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>KST Oscillator (KST)
-</string>
-   </property>
-  </action>
-  <action name="trend_ichimoku">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Ichimoku Kinkō Hyō (Ichimoku)
-</string>
-   </property>
-  </action>
-  <action name="momentum_mfi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Money Flow Index (MFI)
-</string>
-   </property>
-  </action>
-  <action name="momentum_rsi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Relative Strength Index (RSI)
-</string>
-   </property>
-  </action>
-  <action name="momentum_tsi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>True strength index (TSI)
-</string>
-   </property>
-  </action>
-  <action name="momentum_uo">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Ultimate Oscillator (UO)
-</string>
-   </property>
-  </action>
-  <action name="actionStochastic_Oscillator_SR">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Stochastic Oscillator (SR)
-</string>
-   </property>
-  </action>
-  <action name="momentum_wr">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Williams %R (WR)
-</string>
-   </property>
-  </action>
-  <action name="momentum_ao">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Awesome Oscillator (AO)
-</string>
-   </property>
-  </action>
-  <action name="actionKaufman_s_Adaptive_Moving_Average_KAMA">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Kaufman's Adaptive Moving Average (KAMA)
-</string>
-   </property>
-  </action>
-  <action name="actionRate_of_Change_ROC">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Rate of Change (ROC)
-</string>
-   </property>
-  </action>
-  <action name="others_dr">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Daily Return (DR)
-</string>
-   </property>
-  </action>
-  <action name="others_dlr">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Daily Log Return (DLR)
-</string>
-   </property>
-  </action>
-  <action name="others_cr">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Cumulative Return (CR)
-</string>
-   </property>
-  </action>
-  <action name="actionTestnet">
-   <property name="text">
-    <string>Testnet</string>
-   </property>
-  </action>
-  <action name="actionMainnet">
-   <property name="text">
-    <string>Mainnet</string>
-   </property>
-  </action>
-  <action name="trend_sar">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Parabolic SAR (SAR)</string>
-   </property>
-  </action>
+  <widget class="QDockWidget" name="dockWidget_4">
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>180</height>
+    </size>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_7"/>
+  </widget>
  </widget>
  <resources/>
  <connections/>
