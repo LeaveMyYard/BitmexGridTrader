@@ -29,4 +29,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.top_right_dockwidget
         )
 
+        self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
+
         self.show()
