@@ -1,3 +1,3 @@
 from .current_settings import CurrentSettingsModule
-from .base_qdockwidget_module import IQDockWidgetModule
+from .base_qdockwidget_module import BaseUIModule
 from .current_orders import CurrentOrdersModule

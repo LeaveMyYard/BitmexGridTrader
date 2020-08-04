@@ -1,9 +1,9 @@
-from sourse.ui.modules.base_qdockwidget_module import IQDockWidgetModule
+from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets, QtCore
 import typing
 
 
-class CurrentSettingsModule(IQDockWidgetModule):
+class CurrentSettingsModule(BaseUIModule):
     # A tuple of widget class and kwargs
     InputFormat = typing.Tuple[
         typing.Type[QtWidgets.QWidget], str, typing.Dict[str, typing.Tuple]

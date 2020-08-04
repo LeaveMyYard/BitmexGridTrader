@@ -1,9 +1,9 @@
-from sourse.ui.modules.base_qdockwidget_module import IQDockWidgetModule
+from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets
 import typing
 
 
-class CurrentOrdersModule(IQDockWidgetModule):
+class CurrentOrdersModule(BaseUIModule):
     def _create_widgets(self):
         self.layout = QtWidgets.QFormLayout(self.base_widget)
         self.parent_widget.setWindowTitle("Current Orders")
