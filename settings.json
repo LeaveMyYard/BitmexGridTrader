@@ -13,5 +13,43 @@
     "stop_loss_fund": 0.01,
     "min_position": -100,
     "max_position": 100
-  }
+  },
+  "templates": [
+    {
+      "name": "Flat",
+      "desc": "Designed for the market conditions, where the price says the same during some time",
+      "orders_pairs": 10,
+      "orders_start_size": 25,
+      "order_step_size": 50,
+      "interval": 0.5,
+      "min_spread": 2.5,
+      "stop_loss_fund": 0.01,
+      "min_position": -100,
+      "max_position": 100
+    },
+    {
+      "name": "Bull",
+      "desc": "Designed for the market conditions, where the price is going up",
+      "orders_pairs": 10,
+      "orders_start_size": 25,
+      "order_step_size": 50,
+      "interval": 0.5,
+      "min_spread": 2.5,
+      "stop_loss_fund": 0.01,
+      "min_position": -100,
+      "max_position": 100
+    },
+    {
+      "name": "Bear",
+      "desc": "Designed for the market conditions, where the price is gowing down",
+      "orders_pairs": 10,
+      "orders_start_size": 25,
+      "order_step_size": 50,
+      "interval": 0.5,
+      "min_spread": 2.5,
+      "stop_loss_fund": 0.01,
+      "min_position": -100,
+      "max_position": 100
+    }
+  ]
 }

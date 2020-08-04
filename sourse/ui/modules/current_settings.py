@@ -1,5 +1,6 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets, QtCore
+from trade import MarketMaker
 import typing
 
 
@@ -126,3 +127,7 @@ class CurrentSettingsModule(BaseUIModule):
         name_input.textChanged.connect(lambda name: save_button.setEnabled(name != ""))
 
         self.layout.addRow(label, vlayout)
+
+    @QtCore.pyqtSlot()
+    def on_template_loaded(self, name: str, template: MarketMaker.Settings):
+        print(name, template)

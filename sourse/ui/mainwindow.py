@@ -29,6 +29,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.top_right_dockwidget
         )
 
+        self.setting_templates = UiModules.SettingTemplatesModule(
+            self.bottom_right_dockwidget
+        )
+
+        self.setting_templates.template_selected.connect(
+            lambda name, settings: self.current_settings.on_template_loaded(
+                name, settings
+            )
+        )
+
         self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
 
         self.show()

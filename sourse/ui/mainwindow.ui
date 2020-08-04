@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>757</width>
-    <height>589</height>
+    <width>988</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>757</width>
+     <width>988</width>
      <height>21</height>
     </rect>
    </property>
@@ -29,6 +29,12 @@
     <size>
      <width>250</width>
      <height>180</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>700</width>
+     <height>524287</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -41,6 +47,12 @@
     <size>
      <width>250</width>
      <height>180</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>700</width>
+     <height>524287</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -67,6 +79,12 @@
      <height>180</height>
     </size>
    </property>
+   <property name="maximumSize">
+    <size>
+     <width>700</width>
+     <height>524287</height>
+    </size>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
@@ -77,6 +95,12 @@
     <size>
      <width>250</width>
      <height>180</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>700</width>
+     <height>524287</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
