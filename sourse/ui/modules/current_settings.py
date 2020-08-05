@@ -27,6 +27,10 @@ class CurrentSettingsModule(BaseUIModule):
 
     def __init__(self, parent):
         self._setting_widgets: typing.Dict[str, QtWidgets.QWidget] = {}
+        self._keys_widgets: typing.Dict[str, typing.Optional[QtWidgets.QtWidget]] = {
+            "private": None,
+            "public": None,
+        }
         super().__init__(parent)
 
     @staticmethod
@@ -87,11 +91,13 @@ class CurrentSettingsModule(BaseUIModule):
         widget = QtWidgets.QLineEdit()
         widget.setText(settings_data["public_key"])
         layout.addRow(label, widget)
+        self._keys_widgets["public"] = widget
 
         label = QtWidgets.QLabel("Private key:")
         widget = QtWidgets.QLineEdit()
         widget.setText(settings_data["private_key"])
         layout.addRow(label, widget)
+        self._keys_widgets["private"] = widget
 
         return group_box
 
@@ -197,4 +203,16 @@ class CurrentSettingsModule(BaseUIModule):
         return MarketMaker.Settings(
             **{name: widget.value() for name, widget in self._setting_widgets.items()}
         )
+
+    def get_current_keys(self) -> typing.Tuple[str, str]:
+        if (
+            self._keys_widgets["public"] is not None
+            and self._keys_widgets["private"] is not None
+        ):
+            return (
+                self._keys_widgets["public"].text(),
+                self._keys_widgets["private"].text(),
+            )
+
+        raise RuntimeError
 
