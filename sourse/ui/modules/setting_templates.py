@@ -24,7 +24,19 @@ class SettingTemplatesModule(BaseUIModule):
 
     def _clear_templates(self):
         for i in reversed(range(self.layout.count())):
-            self.layout.itemAt(i).widget().deleteLater()
+            item = self.layout.itemAt(i)
+            if isinstance(item, QtWidgets.QWidgetItem):
+                item.widget().deleteLater()
+            elif isinstance(item, QtWidgets.QVBoxLayout):
+                for j in reversed(range(item.count())):
+                    item1 = item.itemAt(j)
+                    if isinstance(item1, QtWidgets.QWidgetItem):
+                        item1.widget().deleteLater()
+                    elif isinstance(item1, QtWidgets.QHBoxLayout):
+                        for k in reversed(range(item1.count())):
+                            item1.itemAt(k).widget().deleteLater()
+
+                item.setParent(None)
 
     @QtCore.pyqtSlot()
     def refresh_templates(self):
@@ -32,6 +44,7 @@ class SettingTemplatesModule(BaseUIModule):
         for name, desc, settings in SettingTemplatesModule.get_saved_templates():
             name_label = QtWidgets.QLabel(f"{name} template:")
             desc_label = QtWidgets.QLabel(f"<i>{desc}</i><br>")
+            desc_label.setWordWrap(True)
             load_button = QtWidgets.QPushButton("Load")
             load_button.pressed.connect(
                 lambda name=name, template=settings: self.template_selected.emit(
