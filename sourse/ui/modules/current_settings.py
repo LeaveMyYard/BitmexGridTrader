@@ -23,15 +23,14 @@ class InputFormat:
 
 class CurrentSettingsModule(BaseUIModule):
     templates_updated = QtCore.pyqtSignal()
+    settings_changed = QtCore.pyqtSignal()
 
     def __init__(self, parent):
         self._setting_widgets: typing.Dict[str, QtWidgets.QWidget] = {}
         super().__init__(parent)
 
     @staticmethod
-    def _get_settings_description() -> typing.Dict[
-        str, CurrentSettingsModule.InputFormat
-    ]:
+    def _get_settings_description() -> typing.Dict[str, InputFormat]:
         d: typing.Dict[str, InputFormat] = {}
 
         settings_data = json.load(open("settings.json", "r"))["settings_description"]
@@ -108,6 +107,8 @@ class CurrentSettingsModule(BaseUIModule):
             label = QtWidgets.QLabel(value.name + ":")
             widget = value.widget_type(group_box)
 
+            widget.valueChanged.connect(self.settings_changed)
+
             self._setting_widgets[name] = widget
 
             for func_name, params in value.params.items():
@@ -168,15 +169,12 @@ class CurrentSettingsModule(BaseUIModule):
 
             settings = json.load(open("./settings.json", "r"))
 
-            settings["templates"].append(
-                dict(
-                    name=name,
-                    desc=desc,
-                    **{
-                        name: widget.value()
-                        for name, widget in self._setting_widgets.items()
-                    },
-                )
+            settings["templates"][name] = dict(
+                desc=desc,
+                **{
+                    name: widget.value()
+                    for name, widget in self._setting_widgets.items()
+                },
             )
 
             with open("./settings.json", "w") as f:

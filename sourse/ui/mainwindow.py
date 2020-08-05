@@ -41,6 +41,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_settings.templates_updated.connect(
             self.setting_templates.refresh_templates
         )
+        self.current_settings.settings_changed.connect(
+            self.setting_templates.reset_load_buttons
+        )
 
         self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
 

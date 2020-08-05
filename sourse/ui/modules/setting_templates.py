@@ -10,6 +10,10 @@ import json
 class SettingTemplatesModule(BaseUIModule):
     template_selected = QtCore.pyqtSignal(str, object)
 
+    def __init__(self, parent):
+        self._load_buttons = []
+        super().__init__(parent)
+
     def _create_widgets(self):
         layout = QtWidgets.QVBoxLayout(self.base_widget)
         self.parent_widget.setWindowTitle("Setting Templates")
@@ -23,6 +27,7 @@ class SettingTemplatesModule(BaseUIModule):
         self.refresh_templates()
 
     def _clear_templates(self):
+        self._load_buttons = []
         for i in reversed(range(self.layout.count())):
             item = self.layout.itemAt(i)
             if isinstance(item, QtWidgets.QWidgetItem):
@@ -46,12 +51,29 @@ class SettingTemplatesModule(BaseUIModule):
             desc_label = QtWidgets.QLabel(f"<i>{desc}</i><br>")
             desc_label.setWordWrap(True)
             load_button = QtWidgets.QPushButton("Load")
+            self._load_buttons.append(load_button)
             load_button.pressed.connect(
                 lambda name=name, template=settings: self.template_selected.emit(
                     name, template
                 )
             )
+            load_button.pressed.connect(
+                lambda button=load_button: (
+                    self.reset_load_buttons(),
+                    button.setDisabled(True),
+                )
+            )
             delete_button = QtWidgets.QPushButton("Delete")
+
+            @QtCore.pyqtSlot()
+            def delete_template(template_name=name):
+                settings = json.load(open("./settings.json", "r"))
+                del settings["templates"][name]
+                with open("./settings.json", "w") as f:
+                    json.dump(settings, f)
+                self.refresh_templates()
+
+            delete_button.pressed.connect(delete_template)
 
             hlayout = QtWidgets.QHBoxLayout()
             hlayout.addWidget(load_button)
@@ -62,17 +84,19 @@ class SettingTemplatesModule(BaseUIModule):
             vlayout.addWidget(desc_label)
             self.layout.addRow(name_label, vlayout)
 
+    @QtCore.pyqtSlot()
+    def reset_load_buttons(self):
+        for button in self._load_buttons:
+            button.setEnabled(True)
+
     @staticmethod
     def get_saved_templates(
         file: str = "./settings.json",
     ) -> typing.Iterator[typing.Tuple[str, str, MarketMaker.Settings]]:
         with open(file, mode="r") as settings_file:
             settings = json.load(settings_file)
-            for template in settings["templates"]:
-                name = template["name"]
+            for name, template in settings["templates"].items():
                 desc = template["desc"]
-
-                del template["name"]
                 del template["desc"]
 
                 setting = MarketMaker.Settings(**template)
