@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from trade import MarketMaker
 import typing
 import json
@@ -19,38 +19,40 @@ class SettingTemplatesModule(BaseUIModule):
         self.base_widget.setLayout(blayout)
         self.parent_widget.setWindowTitle("Setting Templates")
 
-        #
-        # w = QtWidgets.QWidget()
-        # w.setLayout(self.layout)
-
-        # mw = QtWidgets.QScrollArea()
-        # mw.setWidget(w)
-        # mw.resize(200, 200)
-        # blayout.addWidget(mw)
-
-        # self.refresh_templates()
-
         self.layout = QtWidgets.QFormLayout()
 
-        for i in range(20):
+        self._w = QtWidgets.QWidget()
+        self._w.setLayout(self.layout)
+
+        for i in range(1):
             button1 = QtWidgets.QPushButton("!{}!".format(i))
             button2 = QtWidgets.QPushButton("{}".format(i))
-            button2.setFixedWidth(300)
             self.layout.addRow(button1, button2)
 
-        w = QtWidgets.QWidget()
-        w.setLayout(self.layout)
-        w.setSizePolicy(
+        self._mw = QtWidgets.QScrollArea()
+        self._mw.setWidget(self._w)
+
+        self._w.setSizePolicy(
             QtWidgets.QSizePolicy.MinimumExpanding,
             QtWidgets.QSizePolicy.MinimumExpanding,
         )
 
-        mw = QtWidgets.QScrollArea()
-        mw.setWidget(w)
-        w.resize(5000, 5000)
-        blayout.addWidget(mw, 1)
+        self._mw.resizeEvent = self.__update_size
+        blayout.addWidget(self._mw, 1)
 
         self.refresh_templates()
+
+    def __update_size(self, event: typing.Optional[QtGui.QResizeEvent] = None):
+        if event is not None:
+            self._w.resize(
+                event.size().width(),
+                max(self._mw.size().height(), self.layout.rowCount() * 40),
+            )
+        else:
+            self._w.resize(
+                self._mw.size().width(),
+                max(self._mw.size().height(), self.layout.rowCount() * 40),
+            )
 
     def _clear_templates(self):
         self._load_buttons = []
@@ -103,6 +105,8 @@ class SettingTemplatesModule(BaseUIModule):
             vlayout.addLayout(hlayout)
             vlayout.addWidget(desc_label)
             self.layout.addRow(name_label, vlayout)
+
+        self.__update_size()
 
     def delete_template(self, name):
         settings = json.load(open("./settings.json", "r"))
