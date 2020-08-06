@@ -175,6 +175,24 @@ class CurrentSettingsModule(BaseUIModule):
 
             settings = json.load(open("./settings.json", "r"))
 
+            if name in settings["templates"]:
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Question)
+                # msg.setIconPixmap(pixmap)  # Своя картинка
+
+                msg.setWindowTitle("Template already exists")
+                msg.setText(f'Template called "{name}" already exists.')
+                msg.setInformativeText(
+                    "The template, you wanted to create already exists. Do you want to replace it?"
+                )
+
+                okButton = msg.addButton("Yes", QtWidgets.QMessageBox.AcceptRole)
+                msg.addButton("No", QtWidgets.QMessageBox.RejectRole)
+
+                msg.exec()
+                if msg.clickedButton() != okButton:
+                    return
+
             settings["templates"][name] = dict(
                 desc=desc,
                 **{
