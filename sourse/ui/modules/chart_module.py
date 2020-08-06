@@ -72,7 +72,15 @@ class Chart(QtCore.QObject):
 
         self.__prev_rect: QtCore.QRectF = None
 
+        self._grid_lines: typing.List[pyqtgraph.GraphicsObject] = []
+
         self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
+
+        curr_price = self._hist.iloc[-1]["Close"]
+        self.add_grid(
+            [curr_price + i * 5 for i in range(10)],
+            [curr_price - i * 5 for i in range(10)],
+        )
 
     def _load_hist(self) -> pd.DataFrame:
         return pd.read_csv(
@@ -134,3 +142,23 @@ class Chart(QtCore.QObject):
                 self._right_candle = min(self._right_candle, i)
 
         self.__prev_rect = rect
+
+    def get_current_candle_id(self) -> int:
+        return self._hist["Unnamed: 0"].iloc[-1]
+
+    def add_grid(self, buy_grid: typing.List[float], sell_grid: typing.List[float]):
+        for buy_order in buy_grid:
+            now_id = self.get_current_candle_id()
+            line = self.graphWidget.plot(
+                x=[now_id, now_id + 1],
+                y=[buy_order] * 2,
+                pen=pyqtgraph.mkPen("#EF5350"),
+            )
+
+        for sell_order in sell_grid:
+            now_id = self.get_current_candle_id()
+            line = self.graphWidget.plot(
+                x=[now_id, now_id + 1],
+                y=[sell_order] * 2,
+                pen=pyqtgraph.mkPen("#26A69A"),
+            )
