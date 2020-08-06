@@ -4,3 +4,4 @@ colorlog
 pyqt5
 qdarkstyle
 pyqtgraph
+pandas
