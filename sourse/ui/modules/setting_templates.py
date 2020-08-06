@@ -47,7 +47,7 @@ class SettingTemplatesModule(BaseUIModule):
 
         mw = QtWidgets.QScrollArea()
         mw.setWidget(w)
-        # mw.resize(500, 500)
+        w.resize(5000, 5000)
         blayout.addWidget(mw, 1)
 
         self.refresh_templates()
