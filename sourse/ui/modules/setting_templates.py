@@ -15,14 +15,40 @@ class SettingTemplatesModule(BaseUIModule):
         super().__init__(parent)
 
     def _create_widgets(self):
-        layout = QtWidgets.QVBoxLayout(self.base_widget)
+        blayout = QtWidgets.QVBoxLayout()
+        self.base_widget.setLayout(blayout)
         self.parent_widget.setWindowTitle("Setting Templates")
-        self.base_widget.setLayout(layout)
 
-        self.scroll_box = QtWidgets.QScrollArea()
-        layout.addWidget(self.scroll_box)
+        #
+        # w = QtWidgets.QWidget()
+        # w.setLayout(self.layout)
 
-        self.layout = QtWidgets.QFormLayout(self.scroll_box)
+        # mw = QtWidgets.QScrollArea()
+        # mw.setWidget(w)
+        # mw.resize(200, 200)
+        # blayout.addWidget(mw)
+
+        # self.refresh_templates()
+
+        self.layout = QtWidgets.QFormLayout()
+
+        for i in range(20):
+            button1 = QtWidgets.QPushButton("!{}!".format(i))
+            button2 = QtWidgets.QPushButton("{}".format(i))
+            button2.setFixedWidth(300)
+            self.layout.addRow(button1, button2)
+
+        w = QtWidgets.QWidget()
+        w.setLayout(self.layout)
+        w.setSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
+
+        mw = QtWidgets.QScrollArea()
+        mw.setWidget(w)
+        # mw.resize(500, 500)
+        blayout.addWidget(mw, 1)
 
         self.refresh_templates()
 
@@ -65,15 +91,9 @@ class SettingTemplatesModule(BaseUIModule):
             )
             delete_button = QtWidgets.QPushButton("Delete")
 
-            @QtCore.pyqtSlot()
-            def delete_template(template_name=name):
-                settings = json.load(open("./settings.json", "r"))
-                del settings["templates"][name]
-                with open("./settings.json", "w") as f:
-                    json.dump(settings, f)
-                self.refresh_templates()
-
-            delete_button.pressed.connect(delete_template)
+            delete_button.pressed.connect(
+                lambda tname=name: self.delete_template(tname)
+            )
 
             hlayout = QtWidgets.QHBoxLayout()
             hlayout.addWidget(load_button)
@@ -83,6 +103,13 @@ class SettingTemplatesModule(BaseUIModule):
             vlayout.addLayout(hlayout)
             vlayout.addWidget(desc_label)
             self.layout.addRow(name_label, vlayout)
+
+    def delete_template(self, name):
+        settings = json.load(open("./settings.json", "r"))
+        del settings["templates"][name]
+        with open("./settings.json", "w") as f:
+            json.dump(settings, f)
+        self.refresh_templates()
 
     @QtCore.pyqtSlot()
     def reset_load_buttons(self):
