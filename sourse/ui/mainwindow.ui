@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>757</width>
-    <height>589</height>
+    <width>988</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,64 +19,46 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>757</width>
+     <width>988</width>
      <height>21</height>
     </rect>
    </property>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
-   <property name="minimumSize">
-    <size>
-     <width>250</width>
-     <height>180</height>
-    </size>
-   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_2">
-   <property name="minimumSize">
-    <size>
-     <width>250</width>
-     <height>180</height>
-    </size>
-   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_5">
-   <property name="minimumSize">
-    <size>
-     <width>250</width>
-     <height>180</height>
-    </size>
-   </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_3"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_3">
-   <property name="minimumSize">
-    <size>
-     <width>250</width>
-     <height>180</height>
-    </size>
-   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_6"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_4">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="minimumSize">
     <size>
-     <width>250</width>
-     <height>180</height>
+     <width>80</width>
+     <height>200</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -84,6 +66,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_7"/>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>
