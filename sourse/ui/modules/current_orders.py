@@ -4,7 +4,7 @@ import datetime
 import typing
 
 
-class CurrentOrdersModule(IQDockWidgetModule):
+class CurrentOrdersModule(BaseUIModule):
     def _create_widgets(self):
         self.layout = QtWidgets.QHBoxLayout(self.base_widget)
         self.parent_widget.setWindowTitle("Current Orders")
