@@ -4,39 +4,6 @@ import pandas as pd
 import typing
 
 
-class Chart(QtCore.QObject):
-    def __init__(self, parent: QtWidgets.QMainWindow):
-        super().__init__(parent)
-
-        self.graphWidget = pyqtgraph.PlotWidget()
-        self.graphWidget.setBackground("#19232d")  # 25 35 45
-        parent.setCentralWidget(self.graphWidget)
-
-        data = [  ## fields are (time, open, close, min, max).
-            (i, i + 1, i, i - 10, i + 10) for i in range(100)
-        ]
-
-        self.graphWidget.showGrid(True, True)
-
-        self._hist: pd.DataFrame = self._load_hist().iloc[:100]
-
-        for i, row in self._hist.iterrows():
-            item = CandlestickItem(row)
-            self.graphWidget.addItem(item)
-
-        self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
-
-    def _load_hist(self) -> pd.DataFrame:
-        return pd.read_csv(
-            r"C:\Users\blackbox1\Documents\GitHub\CUDA-Trading-Optimizer\data\binance_1d.csv"
-        )
-
-    @QtCore.pyqtSlot(object)
-    def _on_range_changed(self, pos):
-        rect: QtCore.QRectF = pos.viewRect()
-        print(rect)
-
-
 class CandlestickItem(pyqtgraph.GraphicsObject):
     def __init__(self, data: typing.Mapping[str, float], candle_width: float = 0.333):
         pyqtgraph.GraphicsObject.__init__(self)
@@ -59,11 +26,11 @@ class CandlestickItem(pyqtgraph.GraphicsObject):
         # p.setPen(pyqtgraph.mkPen("#ffffff00"))
 
         if open > close:
-            p.setBrush(pyqtgraph.mkBrush("#FF4500"))
-            p.setPen(pyqtgraph.mkPen("#FF4500"))
+            p.setBrush(pyqtgraph.mkBrush("#EF5350"))
+            p.setPen(pyqtgraph.mkPen("#EF5350"))
         else:
-            p.setBrush(pyqtgraph.mkBrush("#00FF00"))
-            p.setPen(pyqtgraph.mkPen("#00FF00"))
+            p.setBrush(pyqtgraph.mkBrush("#26A69A"))
+            p.setPen(pyqtgraph.mkPen("#26A69A"))
         p.drawLine(QtCore.QPointF(t, low), QtCore.QPointF(t, high))
         p.drawRect(
             QtCore.QRectF(
@@ -81,3 +48,89 @@ class CandlestickItem(pyqtgraph.GraphicsObject):
         ## or else we will get artifacts and possibly crashing.
         ## (in this case, QPicture does all the work of computing the bouning rect for us)
         return QtCore.QRectF(self.picture.boundingRect())
+
+
+class Chart(QtCore.QObject):
+    def __init__(self, parent: QtWidgets.QMainWindow):
+        super().__init__(parent)
+
+        self.graphWidget = pyqtgraph.PlotWidget()
+        self.graphWidget.setBackground("#19232d")  # 25 35 45
+        parent.setCentralWidget(self.graphWidget)
+
+        self.graphWidget.showGrid(True, True)
+
+        self._hist: pd.DataFrame = self._load_hist()
+
+        self._drawn_candles: typing.Dict[int, CandlestickItem] = {}
+
+        for i, row in self._hist.iloc[-100:].iterrows():
+            self._draw_candle(i)
+
+        self._left_candle = min(self._hist["Unnamed: 0"])
+        self._right_candle = max(self._hist["Unnamed: 0"])
+
+        self.__prev_rect: QtCore.QRectF = None
+
+        self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
+
+    def _load_hist(self) -> pd.DataFrame:
+        return pd.read_csv(
+            r"C:\Users\blackbox1\Documents\GitHub\CUDA-Trading-Optimizer\data\binance_1d.csv"
+        )
+
+    def _draw_candle(self, num: int) -> typing.Optional[CandlestickItem]:
+        if num in self._drawn_candles:
+            self.graphWidget.removeItem(self._drawn_candles[num])
+
+        try:
+            self._drawn_candles[num] = item = CandlestickItem(self._hist.iloc[num])
+        except IndexError:
+            return None
+
+        self.graphWidget.addItem(item)
+        return item
+
+    def _undraw_candle(self, num: int) -> None:
+        if num not in self._drawn_candles:
+            return
+
+        item = self._drawn_candles[num]
+        self.graphWidget.removeItem(item)
+        self._drawn_candles.pop(num, 0)
+
+    @QtCore.pyqtSlot(object)
+    def _on_range_changed(self, pos):
+        rect: QtCore.QRectF = pos.viewRect()
+
+        if rect.width() > 1500:
+            if self.__prev_rect.width() > 1500:
+                self.__prev_rect.setWidth(1500)
+            self.graphWidget.sigRangeChanged.disconnect(self._on_range_changed)
+            self.graphWidget.setRange(self.__prev_rect)
+            self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
+            return
+
+        x = int(rect.x())
+
+        if x < self._left_candle:
+            for i in range(x, self._left_candle + 1):
+                self._draw_candle(i)
+                self._left_candle = min(self._left_candle, i)
+        elif x > self._left_candle:
+            for i in range(self._left_candle + 1, x + 1):
+                self._undraw_candle(i)
+                self._left_candle = max(self._left_candle, i)
+
+        x = int(rect.x() + rect.width())
+
+        if x > self._right_candle:
+            for i in range(self._right_candle, x + 1):
+                self._draw_candle(i)
+                self._right_candle = max(self._right_candle, i)
+        elif x < self._right_candle:
+            for i in range(x + 1, self._right_candle + 1):
+                self._undraw_candle(i)
+                self._right_candle = min(self._right_candle, i)
+
+        self.__prev_rect = rect
