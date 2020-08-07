@@ -18,7 +18,7 @@ class CandlestickItem(pyqtgraph.GraphicsObject):
         self.picture = QtGui.QPicture()
         p = QtGui.QPainter(self.picture)
 
-        t = self.data["Unnamed: 0"]
+        t = self.data["id"]
         open = self.data["Open"]
         high = self.data["High"]
         low = self.data["Low"]
@@ -67,8 +67,8 @@ class Chart(QtCore.QObject):
         for i, row in self._hist.iloc[-100:].iterrows():
             self._draw_candle(i)
 
-        self._left_candle = min(self._hist["Unnamed: 0"])
-        self._right_candle = max(self._hist["Unnamed: 0"])
+        self._left_candle = min(self._hist["id"])
+        self._right_candle = max(self._hist["id"])
 
         self.__prev_rect: QtCore.QRectF = None
 
@@ -84,9 +84,9 @@ class Chart(QtCore.QObject):
 
     def _load_hist(self) -> pd.DataFrame:
         return pd.read_csv(
-            r"~/Desktop/bitmex_1m_1month.csv"
-            # r"C:\Users\blackbox1\Documents\GitHub\CUDA-Trading-Optimizer\data\binance_1d.csv"
-        )
+            # r"~/Desktop/bitmex_1m_1month.csv"
+            r"C:\Users\blackbox1\Documents\GitHub\CUDA-Trading-Optimizer\data\binance_1d.csv"
+        ).rename(columns={"Unnamed: 0": "id"})
 
     def _draw_candle(self, num: int) -> typing.Optional[CandlestickItem]:
         if num in self._drawn_candles:
@@ -107,6 +107,9 @@ class Chart(QtCore.QObject):
         item = self._drawn_candles[num]
         self.graphWidget.removeItem(item)
         self._drawn_candles.pop(num, 0)
+
+    def _id_is_viewed(self, time: float) -> bool:
+        return time >= self._left_candle and time <= self._right_candle
 
     @QtCore.pyqtSlot(object)
     def _on_range_changed(self, pos):
@@ -145,7 +148,7 @@ class Chart(QtCore.QObject):
         self.__prev_rect = rect
 
     def get_current_candle_id(self) -> int:
-        return self._hist["Unnamed: 0"].iloc[-1]
+        return self._hist["id"].iloc[-1]
 
     def add_grid(self, buy_grid: typing.List[float], sell_grid: typing.List[float]):
         for buy_order in buy_grid:
@@ -163,3 +166,21 @@ class Chart(QtCore.QObject):
                 y=[sell_order] * 2,
                 pen=pyqtgraph.mkPen("#26A69A"),
             )
+
+    def add_candle(self, candle_data: typing.Mapping[str, float]) -> None:
+        new_id = self._hist["id"].iloc[-1] + 1
+        self._hist = self._hist.append(
+            pd.DataFrame(
+                {
+                    "id": new_id,
+                    "Open": candle_data["Open"],
+                    "High": candle_data["High"],
+                    "Low": candle_data["Low"],
+                    "Close": candle_data["Close"],
+                    "Volume": candle_data["Volume"],
+                }
+            )
+        )
+
+        if self._id_is_viewed(new_id):
+            self._draw_candle(new_id)

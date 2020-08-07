@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets, QtCore
-from trade import MarketMaker
+from sourse.marketmaker import MarketMaker
 import typing
 import json
 
@@ -24,6 +24,8 @@ class InputFormat:
 class CurrentSettingsModule(BaseUIModule):
     templates_updated = QtCore.pyqtSignal()
     settings_changed = QtCore.pyqtSignal()
+    start_button_pressed = QtCore.pyqtSignal()
+    stop_button_pressed = QtCore.pyqtSignal()
 
     def __init__(self, parent):
         self._setting_widgets: typing.Dict[str, QtWidgets.QWidget] = {}
@@ -78,8 +80,32 @@ class CurrentSettingsModule(BaseUIModule):
         self.layout.addWidget(self._create_algorithm_groupbox())
         self.layout.addWidget(self._create_template_saving_groupbox())
 
+        self.layout.addWidget(self._create_start_stop_button())
+
         for i, v in enumerate([0, 1, 0]):
             self.layout.setStretch(i, v)
+
+    def _create_start_stop_button(self) -> QtWidgets.QPushButton:
+        button = QtWidgets.QPushButton("Start bot")
+        running: bool = False
+
+        @QtCore.pyqtSlot()
+        def on_pressed():
+            nonlocal running
+
+            if running:
+                button.setText("Start bot")
+                self.stop_button_pressed.emit()
+                return
+            else:
+                button.setText("Stop bot")
+                self.start_button_pressed.emit()
+
+            running = not running
+
+        button.pressed.connect(on_pressed)
+
+        return button
 
     def _create_keys_groupbox(self) -> QtWidgets.QGroupBox:
         group_box = QtWidgets.QGroupBox("Keys")

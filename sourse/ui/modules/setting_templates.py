@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets, QtCore, QtGui
-from trade import MarketMaker
+from sourse.marketmaker import MarketMaker
 import typing
 import json
 
