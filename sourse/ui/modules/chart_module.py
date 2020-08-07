@@ -84,6 +84,7 @@ class Chart(QtCore.QObject):
 
     def _load_hist(self) -> pd.DataFrame:
         return pd.read_csv(
+            # r"~/Desktop/bitmex_1m_1month.csv"
             r"C:\Users\blackbox1\Documents\GitHub\CUDA-Trading-Optimizer\data\binance_1d.csv"
         ).rename(columns={"Unnamed: 0": "id"})
 
