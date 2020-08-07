@@ -17,11 +17,22 @@ class CurrentOrdersModule(BaseUIModule):
         self.table = QtWidgets.QTableWidget(len(self._order_dict), 5)
         self.table.setSortingEnabled(False)
         self.table.setHorizontalHeaderLabels(["id", "Time", "Side", "Price", "Volume"])
+        self.table.verticalHeader().hide()
 
-        for i in range(10):
-            self.add_order(i, i)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.Stretch)
 
         self.layout.addWidget(self.table)
+        
+        for i in range(1, 11):
+            self.add_order(i * 100, i * -100)
+        
+        for i in range(1, 11, 2):
+            self.remove_order(i)
 
     def add_order(self, price: float, volume: float) -> int:
         self._current_id += 1
@@ -31,21 +42,18 @@ class CurrentOrdersModule(BaseUIModule):
 
         self.table.setRowCount(len(self._order_dict))
 
-        self.table.setItem(
-            len(self._order_dict) - 1, 0, self.createItem(str(order_id))
-        )
+        self.table.setItem(len(self._order_dict) - 1, 0, self.createItem(str(order_id)))
         for i, value in enumerate(self._order_dict[order_id].to_dict().values()):
             self.table.setItem(
                 len(self._order_dict) - 1, i + 1, self.createItem(str(value))
             )
-        
-        self.table.resizeColumnsToContents()
-        
+
         return order_id
 
     def remove_order(self, order_id: int) -> None:
         del self._order_dict[order_id]
-        
+        self.table.removeRow(order_id - 1)
+
     def createItem(self, text):
         tableWidgetItem = QtWidgets.QTableWidgetItem(text)
         tableWidgetItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
@@ -62,6 +70,6 @@ class Order:
 
     def to_dict(self):
         return dict(
-            time=self.date, side=self.side, price=self.price, volume=self.volume
+            time=self.date, side=self.side, price=self.price, volume=abs(self.volume)
         )
 
