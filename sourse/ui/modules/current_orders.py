@@ -1,5 +1,6 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
 import datetime
 import typing
 
@@ -13,8 +14,8 @@ class CurrentOrdersModule(BaseUIModule):
         self._current_id = 0
         self._order_dict = {}
 
-        self.table = QtWidgets.QTableWidget(len(self._order_dict) + 100, 5)
-        self.table.setSortingEnabled(True)
+        self.table = QtWidgets.QTableWidget(len(self._order_dict), 5)
+        self.table.setSortingEnabled(False)
         self.table.setHorizontalHeaderLabels(["id", "Time", "Side", "Price", "Volume"])
 
         for i in range(10):
@@ -28,24 +29,27 @@ class CurrentOrdersModule(BaseUIModule):
 
         self._order_dict[order_id] = Order(price=price, volume=volume)
 
+        self.table.setRowCount(len(self._order_dict))
+
         self.table.setItem(
-            len(self._order_dict), 0, QtWidgets.QTableWidgetItem(str(order_id))
+            len(self._order_dict) - 1, 0, self.createItem(str(order_id))
         )
         for i, value in enumerate(self._order_dict[order_id].to_dict().values()):
             self.table.setItem(
-                len(self._order_dict), i + 1, QtWidgets.QTableWidgetItem(str(value))
+                len(self._order_dict) - 1, i + 1, self.createItem(str(value))
             )
-
-        # self.table.setItem(1, 1, QtWidgets.QTableWidgetItem(str(1)))
-        # self.table.setItem(1, 2, QtWidgets.QTableWidgetItem(str(2)))
-        # self.table.setItem(1, 3, QtWidgets.QTableWidgetItem(str(3)))
-        # self.table.setItem(1, 4, QtWidgets.QTableWidgetItem(str(4)))
-        # self.table.setItem(1, 5, QtWidgets.QTableWidgetItem(str(5)))
-
+        
+        self.table.resizeColumnsToContents()
+        
         return order_id
 
     def remove_order(self, order_id: int) -> None:
         del self._order_dict[order_id]
+        
+    def createItem(self, text):
+        tableWidgetItem = QtWidgets.QTableWidgetItem(text)
+        tableWidgetItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        return tableWidgetItem
 
 
 class Order:
