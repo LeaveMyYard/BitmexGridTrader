@@ -8,15 +8,8 @@
             "name": "BitmexMM: UI",
             "type": "python",
             "request": "launch",
-            "program": "trade_ui.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "BitmexMM: Console",
-            "type": "python",
-            "request": "launch",
             "program": "trade.py",
             "console": "integratedTerminal"
-        }
+        },
     ]
 }

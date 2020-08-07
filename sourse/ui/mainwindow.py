@@ -1,5 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import sourse.ui.modules as UiModules
+import asyncio
+import threading
+from sourse.marketmaker import MarketMaker
+from sourse.exchange_handlers import BitmexExchangeHandler
 import typing
 
 
@@ -44,9 +48,42 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_settings.settings_changed.connect(
             self.setting_templates.reset_load_buttons
         )
+        self.current_settings.start_button_pressed.connect(self.start)
 
         self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
 
         self.chart = UiModules.Chart(self)
 
+        self.marketmaker: MarketMaker = None
+        self.worker_thread: threading.Thread = None
+
         self.show()
+
+    @QtCore.pyqtSlot()
+    def start(self):
+        def run_bot():
+            handler = BitmexExchangeHandler(*self.current_settings.get_current_keys())
+            self.marketmaker = MarketMaker(
+                "XBTUSD", handler, self.current_settings.get_current_settings()
+            )
+
+            self.marketmaker.candle_appeared.connect(
+                lambda x: self._on_kline_event_appeared(x)
+            )
+
+            asyncio.run(self.marketmaker.start())
+
+        self.worker_thread = threading.Thread(target=run_bot)
+        self.worker_thread.start()
+
+    @QtCore.pyqtSlot()
+    def _on_kline_event_appeared(self, candle: BitmexExchangeHandler.KlineCallback):
+        candle_dict = {
+            "Open": candle.open,
+            "High": candle.high,
+            "Low": candle.low,
+            "Close": candle.close,
+            "Volume": candle.volume,
+        }
+        print(candle_dict)
+        self.chart.add_candle(candle_dict)
