@@ -15,6 +15,7 @@ class CurrentOrdersModule(BaseUIModule):
         self._order_dict = {}
 
         self.table = QtWidgets.QTableWidget(len(self._order_dict), 5)
+
         self.table.setSortingEnabled(False)
         self.table.setHorizontalHeaderLabels(["id", "Time", "Side", "Price", "Volume"])
         self.table.verticalHeader().hide()
@@ -27,12 +28,6 @@ class CurrentOrdersModule(BaseUIModule):
         header.setSectionResizeMode(4, QtWidgets.QHeaderView.Stretch)
 
         self.layout.addWidget(self.table)
-        
-        for i in range(1, 11):
-            self.add_order(i * 100, i * -100)
-        
-        for i in range(1, 11, 2):
-            self.remove_order(i)
 
     def add_order(self, price: float, volume: float) -> int:
         self._current_id += 1
