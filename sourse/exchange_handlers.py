@@ -14,6 +14,7 @@ import json
 import random
 import threading
 import time
+import pandas as pd
 import typing
 import urllib
 from dataclasses import dataclass
@@ -105,6 +106,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         thread = threading.Thread(
             target=self.start_kline_socket, args=[on_update, candle_type, pair_name]
         )
+        thread.setDaemon(True)
         thread.start()
         return thread
 
@@ -116,6 +118,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         thread = threading.Thread(
             target=self.start_price_socket, args=[on_update, pair_name]
         )
+        thread.setDaemon(True)
         thread.start()
         return thread
 
@@ -128,8 +131,27 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         thread = threading.Thread(
             target=self.start_user_update_socket, args=[on_update]
         )
+        thread.setDaemon(True)
         thread.start()
         return thread
+
+    @abc.abstractmethod
+    async def load_historical_data(
+        self,
+        type: str,
+        amount: int
+    ) -> pd.DataFrame:
+        """load_historical_data load historical candles from the exchange
+
+        Args:
+            type (str): candle type, aka 1m, 1h, 1d (as supported by the Exchange)
+            amount (int): the amount of candles, that should be loaded
+
+        Returns:
+            pd.DataFrame: the pandas table, containing 6 columns:
+                Date, Open, High, Low, Close and Volume
+        """
+        ...
 
     @dataclass
     class NewOrderData:
