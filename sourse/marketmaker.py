@@ -16,6 +16,8 @@ class MarketMaker(QtCore.QObject):
 
     period_updated = QtCore.pyqtSignal()
     candle_appeared = QtCore.pyqtSignal(object)
+    grid_updates = QtCore.pyqtSignal()
+    order_updated = QtCore.pyqtSignal(str, float, float)
 
     @dataclass
     class Settings:
@@ -106,6 +108,8 @@ class MarketMaker(QtCore.QObject):
                 data.status,
             )
 
+            self.order_updated(data.orderID, data.price, data.volume)
+
             if data.status == "CANCELED" or data.status == "FILLED":
                 del self._current_orders[data.orderID]
                 if data.status == "FILLED":
@@ -189,6 +193,7 @@ class MarketMaker(QtCore.QObject):
 
     async def _update_grid(self):
         await self._cancel_orders()
+        self.grid_updates.emit()
         await self._create_orders()
 
     async def start(self):

@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import sourse.ui.modules as UiModules
 import asyncio
+import pandas as pd
 import threading
 from sourse.marketmaker import MarketMaker
 from sourse.exchange_handlers import BitmexExchangeHandler
@@ -54,12 +55,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
 
+        self.handle = BitmexExchangeHandler(*self.current_settings.get_current_keys())
         self.chart = UiModules.Chart(self)
 
-        self.handle = BitmexExchangeHandler(*self.current_settings.get_current_keys())
+        data_loading = asyncio.run_coroutine_threadsafe(
+            self.handle.load_historical_data("XBTUSD", "1m", 2000),
+            self.asyncio_event_loop,
+        )
+
         self.handle.start_kline_socket_threaded(
             self._on_kline_event_appeared, "1m", "XBTUSD"
         )
+
+        self.chart.draw_historical_data(data_loading.result())
+
+        # data_loading.add_done_callback(
+        #     lambda x: self.chart.draw_historical_data(x.result())
+        # )
 
         self.marketmaker: MarketMaker = None
         self.worker_thread: QtCore.QThread = None
@@ -78,6 +90,9 @@ class MainWindow(QtWidgets.QMainWindow):
             mainwindow.marketmaker.candle_appeared.connect(
                 lambda x: mainwindow._on_kline_event_appeared(x)
             )
+
+            mainwindow.marketmaker.grid_updates.connect(mainwindow._on_grid_updates)
+            mainwindow.marketmaker.order_updated.connect(mainwindow._on_order_updated)
 
             asyncio.run_coroutine_threadsafe(
                 mainwindow.marketmaker.start(), mainwindow.asyncio_event_loop
@@ -98,3 +113,11 @@ class MainWindow(QtWidgets.QMainWindow):
             "Volume": candle.volume,
         }
         self.chart.add_candle(candle_dict)
+
+    @QtCore.pyqtSlot()
+    def _on_grid_updates(self):
+        print("Grid updates")
+
+    @QtCore.pyqtSlot()
+    def _on_order_updated(self):
+        print()

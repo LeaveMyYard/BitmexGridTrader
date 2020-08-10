@@ -60,33 +60,56 @@ class Chart(QtCore.QObject):
 
         self.graphWidget.showGrid(True, True)
 
-        self._hist: pd.DataFrame = self._load_hist()
-
+        self._hist: pd.DataFrame
         self._drawn_candles: typing.Dict[int, CandlestickItem] = {}
+        self._left_candle = 0
+        self._right_candle = 0
+
+        self.__prev_rect: QtCore.QRectF = None
+        self._grid_lines: typing.List[pyqtgraph.GraphicsObject] = []
+        self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
+
+        # curr_price = self._hist.iloc[-1]["Close"]
+        # self.add_grid(
+        #     [curr_price + i * 5 for i in range(10)],
+        #     [curr_price - i * 5 for i in range(10)],
+        # )
+
+    def draw_historical_data(self, hist_data: pd.DataFrame):
+        self._hist = hist_data
+        self._hist["id"] = list(range(len(self._hist)))
 
         for i, row in self._hist.iloc[-100:].iterrows():
             self._draw_candle(i)
 
-        self._left_candle = min(self._hist["id"])
-        self._right_candle = max(self._hist["id"])
-
-        self.__prev_rect: QtCore.QRectF = None
-
-        self._grid_lines: typing.List[pyqtgraph.GraphicsObject] = []
-
-        self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
-
         curr_price = self._hist.iloc[-1]["Close"]
-        self.add_grid(
-            [curr_price + i * 5 for i in range(10)],
-            [curr_price - i * 5 for i in range(10)],
+        curr_id = self._hist.iloc[-1]["id"]
+
+        width = 100
+
+        prices = [
+            (min(row), max(row))
+            for i, row in (
+                self._hist[["Open", "High", "Low", "Close"]]
+                .iloc[curr_id - width - 1 : -1]
+                .iterrows()
+            )
+        ]
+
+        min_price, max_price = (
+            min(prices, key=lambda x: x[0])[0],
+            max(prices, key=lambda x: x[1])[1],
         )
 
-    def _load_hist(self) -> pd.DataFrame:
-        return pd.read_csv(
-            # r"~/Desktop/bitmex_1m_1month.csv"
-            r"C:\Users\blackbox1\Documents\GitHub\CUDA-Trading-Optimizer\data\binance_1d.csv"
-        ).rename(columns={"Unnamed: 0": "id"})
+        height = 2 * max(abs(min_price - curr_price), abs(max_price - curr_price))
+
+        rect = QtCore.QRectF(
+            curr_id - width + 1, curr_price - height / 2, width, height
+        )
+
+        self.graphWidget.sigRangeChanged.disconnect(self._on_range_changed)
+        self.graphWidget.setRange(rect)
+        self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
 
     def _draw_candle(self, num: int) -> typing.Optional[CandlestickItem]:
         if num in self._drawn_candles:
