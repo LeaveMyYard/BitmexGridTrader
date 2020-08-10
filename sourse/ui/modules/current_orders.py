@@ -29,7 +29,7 @@ class CurrentOrdersModule(BaseUIModule):
 
         self.layout.addWidget(self.table)
 
-    def add_order(self, price: float, volume: float) -> int:
+    def add_order(self, order_id: str, price: float, volume: float) -> int:
         self._current_id += 1
         order_id = self._current_id
 
