@@ -18,7 +18,7 @@ import pandas as pd
 import typing
 import urllib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import collections
 
 import bitmex
@@ -137,9 +137,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def load_historical_data(
-        self,
-        type: str,
-        amount: int
+        self, symbol: str, candle_type: str, amount: int
     ) -> pd.DataFrame:
         """load_historical_data load historical candles from the exchange
 
@@ -151,7 +149,62 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
             pd.DataFrame: the pandas table, containing 6 columns:
                 Date, Open, High, Low, Close and Volume
         """
-        ...
+        parse_interval = lambda interval: (
+            1
+            if interval == "1m"
+            else 5
+            if interval == "5m"
+            else 60
+            if interval == "1h"
+            else 24 * 60
+            if interval == "1d"
+            else 0
+        )
+
+        l_time = datetime.now()
+        client = bitmex.bitmex(test=False)
+        data = []
+        max_amount_per_request = 1000
+
+        k = 0
+        while len(data) < amount:
+            r_time = l_time - timedelta(
+                minutes=max_amount_per_request * parse_interval(candle_type)
+            )
+            tmp = client.Trade.Trade_getBucketed(
+                binSize=candle_type,
+                symbol=symbol,
+                startTime=r_time,
+                count=max_amount_per_request,
+            ).result()[0]
+
+            data = tmp + data
+            l_time = r_time
+
+            k += 1
+
+            if k % 3 == 0:
+                time.sleep(5)
+
+        df = pd.DataFrame(
+            data[len(data) - amount :],
+            columns=["timestamp", "open", "high", "low", "close", "volume"],
+        )
+
+        df = df.rename(
+            columns={
+                "timestamp": "Date",
+                "open": "Open",
+                "high": "High",
+                "low": "Low",
+                "close": "Close",
+                "volume": "Volume",
+            }
+        )
+
+        df["Date"] = df["Date"].map(lambda x: x.strftime("%Y-%m-%d %H:%M"))
+
+        return df
 
     @dataclass
     class NewOrderData:
