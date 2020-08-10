@@ -16,8 +16,8 @@ class MarketMaker(QtCore.QObject):
 
     period_updated = QtCore.pyqtSignal()
     candle_appeared = QtCore.pyqtSignal(object)
-    grid_updates = QtCore.pyqtSignal()
-    order_updated = QtCore.pyqtSignal(str, float, float)
+    grid_updates = QtCore.pyqtSignal(object)
+    order_updated = QtCore.pyqtSignal(object)
 
     @dataclass
     class Settings:
@@ -40,7 +40,7 @@ class MarketMaker(QtCore.QObject):
     @staticmethod
     async def minute_start():  # TODO as period_start()
         """minute_start will be working until a new minute starts."""
-        await asyncio.sleep(time.time() % 60)
+        await asyncio.sleep(60 - (time.time() % 60))
 
     def __init__(
         self,
@@ -108,7 +108,7 @@ class MarketMaker(QtCore.QObject):
                 data.status,
             )
 
-            self.order_updated(data.orderID, data.price, data.volume)
+            self.order_updated(data)
 
             if data.status == "CANCELED" or data.status == "FILLED":
                 del self._current_orders[data.orderID]
@@ -145,11 +145,15 @@ class MarketMaker(QtCore.QObject):
     ) -> typing.Tuple[str, float, float]:
         return ("Buy" if volume > 0 else "Sell", price, abs(volume))
 
-    async def _create_orders(self):
+    def _generate_orders(self) -> typing.List[typing.Tuple[str, float, float]]:
         orders = []
-        self.logger.debug("Creating grid from current price (%s)", self._current_price)
 
-        # Creating short positions
+        if self._current_price is None:
+            raise RuntimeError(
+                "Current price is not loaded yet, can not generate orders"
+            )
+
+        # Creating short orders
         if self.position.volume > self.settings.min_position:
             for i in range(self.settings.orders_pairs):
                 start_price = (
@@ -168,7 +172,7 @@ class MarketMaker(QtCore.QObject):
                 )
                 orders.append(self.__convert_order_data(price, volume))
 
-        # Creating long positions
+        # Creating long orders
         if self.position.volume < self.settings.max_position:
             for i in range(self.settings.orders_pairs):
                 start_price = (
@@ -185,6 +189,12 @@ class MarketMaker(QtCore.QObject):
                 )
                 orders.append(self.__convert_order_data(price, volume))
 
+        return orders
+
+    async def _create_orders(
+        self, orders: typing.List[typing.Tuple[str, float, float]]
+    ):
+        self.logger.debug("Creating grid from current price (%s)", self._current_price)
         await self.handler.create_orders(self.pair_name, orders)
 
     async def _cancel_orders(self):
@@ -192,9 +202,10 @@ class MarketMaker(QtCore.QObject):
             await self.handler.cancel_orders(list(self._current_orders.keys()))
 
     async def _update_grid(self):
-        await self._cancel_orders()
-        self.grid_updates.emit()
-        await self._create_orders()
+        # await self._cancel_orders()
+        orders = self._generate_orders()
+        self.grid_updates.emit(orders)
+        # await self._create_orders(orders)
 
     async def start(self):
         """Start the marketmaker bot."""
@@ -206,7 +217,7 @@ class MarketMaker(QtCore.QObject):
         while True:
             await MarketMaker.minute_start()
             self.period_updated.emit()
-            # await self._update_grid()
+            await self._update_grid()
 
 
 def main():

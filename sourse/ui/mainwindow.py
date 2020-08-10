@@ -91,8 +91,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 lambda x: mainwindow._on_kline_event_appeared(x)
             )
 
-            mainwindow.marketmaker.grid_updates.connect(mainwindow._on_grid_updates)
-            mainwindow.marketmaker.order_updated.connect(mainwindow._on_order_updated)
+            mainwindow.marketmaker.grid_updates.connect(
+                lambda x: mainwindow._on_grid_updates(x)
+            )
+            mainwindow.marketmaker.order_updated.connect(
+                lambda x: mainwindow._on_order_updated(x)
+            )
 
             asyncio.run_coroutine_threadsafe(
                 mainwindow.marketmaker.start(), mainwindow.asyncio_event_loop
@@ -115,9 +119,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chart.add_candle(candle_dict)
 
     @QtCore.pyqtSlot()
-    def _on_grid_updates(self):
-        print("Grid updates")
+    def _on_grid_updates(self, orders: typing.List[typing.Tuple[str, float, float]]):
+        print("Grid update")
+        self.chart.add_grid(
+            [p for d, p, _ in orders if d == "Buy"],
+            [p for d, p, _ in orders if d == "Sell"],
+        )
 
     @QtCore.pyqtSlot()
-    def _on_order_updated(self):
-        print()
+    def _on_order_updated(self, data: BitmexExchangeHandler.OrderUpdate):
+        print("Order updates", data.order_id, data.price, data.volume)

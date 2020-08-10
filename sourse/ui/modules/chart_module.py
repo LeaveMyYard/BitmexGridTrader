@@ -177,7 +177,7 @@ class Chart(QtCore.QObject):
         for buy_order in buy_grid:
             now_id = self.get_current_candle_id()
             line = self.graphWidget.plot(
-                x=[now_id, now_id + 1],
+                x=[now_id + 1.5, now_id + 2.5],
                 y=[buy_order] * 2,
                 pen=pyqtgraph.mkPen("#EF5350"),
             )
@@ -185,7 +185,7 @@ class Chart(QtCore.QObject):
         for sell_order in sell_grid:
             now_id = self.get_current_candle_id()
             line = self.graphWidget.plot(
-                x=[now_id, now_id + 1],
+                x=[now_id + 1.5, now_id + 2.5],
                 y=[sell_order] * 2,
                 pen=pyqtgraph.mkPen("#26A69A"),
             )
