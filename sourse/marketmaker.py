@@ -136,10 +136,6 @@ class MarketMaker(QtCore.QObject):
     def _on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
         self._current_price = data.price
 
-    def _on_kline_changed(self, data: AbstractExchangeHandler.KlineCallback):
-        print(data)
-        self.candle_appeared.emit(data)
-
     @staticmethod
     def __convert_order_data(
         price: float, volume: float
@@ -200,9 +196,6 @@ class MarketMaker(QtCore.QObject):
         """Start the marketmaker bot."""
         self.handler.start_user_update_socket_threaded(self._on_user_update)
         self.handler.start_price_socket_threaded(self._on_price_changed, self.pair_name)
-        self.handler.start_kline_socket_threaded(
-            self._on_kline_changed, "1m", self.pair_name
-        )
 
         await asyncio.sleep(2)
 

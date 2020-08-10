@@ -169,18 +169,18 @@ class Chart(QtCore.QObject):
 
     def add_candle(self, candle_data: typing.Mapping[str, float]) -> None:
         new_id = self._hist["id"].iloc[-1] + 1
-        self._hist = self._hist.append(
-            pd.DataFrame(
-                {
-                    "id": new_id,
-                    "Open": candle_data["Open"],
-                    "High": candle_data["High"],
-                    "Low": candle_data["Low"],
-                    "Close": candle_data["Close"],
-                    "Volume": candle_data["Volume"],
-                }
-            )
+        data = pd.DataFrame(
+            {
+                "id": new_id,
+                "Open": candle_data["Open"],
+                "High": candle_data["High"],
+                "Low": candle_data["Low"],
+                "Close": candle_data["Close"],
+                "Volume": candle_data["Volume"],
+            },
+            index=[0],
         )
+        self._hist = self._hist.append(data)
 
         if self._id_is_viewed(new_id):
             self._draw_candle(new_id)

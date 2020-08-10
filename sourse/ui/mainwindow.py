@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import sourse.ui.modules as UiModules
 import asyncio
+import quamash
 import threading
 from sourse.marketmaker import MarketMaker
 from sourse.exchange_handlers import BitmexExchangeHandler
@@ -54,27 +55,40 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.chart = UiModules.Chart(self)
 
+        self.handle = BitmexExchangeHandler(*self.current_settings.get_current_keys())
+        self.handle.start_kline_socket_threaded(
+            self._on_kline_event_appeared, "1m", "XBTUSD"
+        )
+
         self.marketmaker: MarketMaker = None
-        self.worker_thread: threading.Thread = None
+        self.worker_thread: QtCore.QThread = None
 
         self.show()
 
+    class Worker(QtCore.QThread):
+        def run(self, mainwindow):
+            handler = BitmexExchangeHandler(
+                *mainwindow.current_settings.get_current_keys()
+            )
+            mainwindow.marketmaker = MarketMaker(
+                "XBTUSD", handler, mainwindow.current_settings.get_current_settings()
+            )
+
+            mainwindow.marketmaker.candle_appeared.connect(
+                lambda x: mainwindow._on_kline_event_appeared(x)
+            )
+
+            loop = quamash.QEventLoop(QtCore.QCoreApplication.instance())
+            asyncio.set_event_loop(loop)
+
+            with loop:
+                loop.run_until_complete(mainwindow.marketmaker.start())
+
     @QtCore.pyqtSlot()
     def start(self):
-        def run_bot():
-            handler = BitmexExchangeHandler(*self.current_settings.get_current_keys())
-            self.marketmaker = MarketMaker(
-                "XBTUSD", handler, self.current_settings.get_current_settings()
-            )
-
-            self.marketmaker.candle_appeared.connect(
-                lambda x: self._on_kline_event_appeared(x)
-            )
-
-            asyncio.run(self.marketmaker.start())
-
-        self.worker_thread = threading.Thread(target=run_bot)
-        self.worker_thread.start()
+        ...
+        # self.worker_thread = self.Worker()
+        # self.worker_thread.run(self)
 
     @QtCore.pyqtSlot()
     def _on_kline_event_appeared(self, candle: BitmexExchangeHandler.KlineCallback):
@@ -85,5 +99,4 @@ class MainWindow(QtWidgets.QMainWindow):
             "Close": candle.close,
             "Volume": candle.volume,
         }
-        print(candle_dict)
         self.chart.add_candle(candle_dict)
