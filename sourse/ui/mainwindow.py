@@ -1,7 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import sourse.ui.modules as UiModules
 import asyncio
-import quamash
 import threading
 from sourse.marketmaker import MarketMaker
 from sourse.exchange_handlers import BitmexExchangeHandler
@@ -9,7 +8,9 @@ import typing
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, asyncio_event_loop: asyncio.AbstractEventLoop):
+        self.asyncio_event_loop: asyncio.AbstractEventLoop = asyncio_event_loop
+
         super().__init__()
         uic.loadUi("sourse/ui/mainwindow.ui", self)  # Load the .ui file
         # # self.setWindowIcon(QtGui.QIcon("assets/icon_1.png"))
@@ -78,17 +79,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 lambda x: mainwindow._on_kline_event_appeared(x)
             )
 
-            loop = quamash.QEventLoop(QtCore.QCoreApplication.instance())
-            asyncio.set_event_loop(loop)
-
-            with loop:
-                loop.run_until_complete(mainwindow.marketmaker.start())
+            asyncio.run_coroutine_threadsafe(
+                mainwindow.marketmaker.start(), mainwindow.asyncio_event_loop
+            )
 
     @QtCore.pyqtSlot()
     def start(self):
-        ...
-        # self.worker_thread = self.Worker()
-        # self.worker_thread.run(self)
+        self.worker_thread = self.Worker()
+        self.worker_thread.run(self)
 
     @QtCore.pyqtSlot()
     def _on_kline_event_appeared(self, candle: BitmexExchangeHandler.KlineCallback):

@@ -135,14 +135,13 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         thread.start()
         return thread
 
-    @abc.abstractmethod
     async def load_historical_data(
         self, symbol: str, candle_type: str, amount: int
     ) -> pd.DataFrame:
         """load_historical_data load historical candles from the exchange
 
         Args:
-            type (str): candle type, aka 1m, 1h, 1d (as supported by the Exchange)
+            type (str): candle type, aka 1m, 5m, 1h or 1d
             amount (int): the amount of candles, that should be loaded
 
         Returns:
@@ -163,7 +162,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
 
         l_time = datetime.now()
         client = bitmex.bitmex(test=False)
-        data = []
+        data: typing.List[typing.Any] = []
         max_amount_per_request = 1000
 
         k = 0

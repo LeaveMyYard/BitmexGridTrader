@@ -38,8 +38,7 @@ class MarketMaker(QtCore.QObject):
     @staticmethod
     async def minute_start():  # TODO as period_start()
         """minute_start will be working until a new minute starts."""
-        while round(time.time() % 60, 2) != 0:
-            pass
+        await asyncio.sleep(time.time() % 60)
 
     def __init__(
         self,
