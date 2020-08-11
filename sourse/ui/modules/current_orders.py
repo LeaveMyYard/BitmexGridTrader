@@ -1,6 +1,5 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5 import QtWidgets, QtCore
 from sourse.exchange_handlers import AbstractExchangeHandler
 import datetime
 import dataclasses
@@ -57,19 +56,21 @@ class CurrentOrdersModule(BaseUIModule):
         self.tabwidget.addTab(self.table_historical, "Historical orders")
 
         self.layout.addWidget(self.tabwidget)
-        self.table.sortItems(11, Qt.AscendingOrder)
+        self.table.sortItems(10, QtCore.Qt.AscendingOrder)
+
+        self.table.setColumnHidden(10, True)
 
     def add_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
         order_id = order.client_orderID
 
+        current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
+        current_sorted_type = self.table.horizontalHeader().sortIndicatorOrder()
+        self.table.sortItems(10, QtCore.Qt.AscendingOrder)
+        self.table.setSortingEnabled(False)
+
         if order_id in self._order_dict.keys():
-            return self._edit_order(order)
+            res = self._edit_order(order)
         else:
-            current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
-            current_sorted_type = self.table.horizontalHeader().sortIndicatorOrder()
-            self.table.sortItems(11, current_sorted_type) # Qt.AscendingOrder)
-            self.table.setSortingEnabled(False)
-            
             self._order_dict[order_id] = (len(self._order_dict), order)
 
             self.table.setRowCount(len(self._order_dict))
@@ -78,20 +79,21 @@ class CurrentOrdersModule(BaseUIModule):
                 self.table.setItem(
                     len(self._order_dict) - 1, i, self.createItem(str(value))
                 )
+
             self.table.setItem(
-                len(self._order_dict) - 1, 10, self.createItem(str(self.counter))
+                len(self._order_dict) - 1,
+                10,
+                self.QTableWidgetIntegerItem(str(self.counter)),
             )
             self.counter += 1
+            res = order_id
 
-            self.table.setSortingEnabled(True)
-            self.table.sortItems(current_sorted_index, current_sorted_type)
-            
+        self.table.setSortingEnabled(True)
+        self.table.sortItems(current_sorted_index, current_sorted_type)
 
-            return order_id
+        return res
 
     def _edit_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
-        self.table.setSortingEnabled(False)
-
         order_id = order.client_orderID
         order_index = self._order_dict[order_id][0]
 
@@ -99,8 +101,6 @@ class CurrentOrdersModule(BaseUIModule):
             if key == "message":
                 continue
             self.table.item(order_index, i).setText(str(value))
-
-        self.table.setSortingEnabled(True)
 
         return order_id
 
@@ -124,9 +124,13 @@ class CurrentOrdersModule(BaseUIModule):
     def _transfer_table(self) -> None:
         pass
 
+    class QTableWidgetIntegerItem(QtWidgets.QTableWidgetItem):
+        def __lt__(self, other):
+            return int(self.text()) < int(other.text())
+
     @staticmethod
     def createItem(text: str) -> QtWidgets.QTableWidgetItem:
         tableWidgetItem = QtWidgets.QTableWidgetItem(text)
-        tableWidgetItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        tableWidgetItem.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         return tableWidgetItem
