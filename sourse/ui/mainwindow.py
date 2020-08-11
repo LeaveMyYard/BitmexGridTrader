@@ -129,4 +129,4 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def _on_order_updated(self, data: BitmexExchangeHandler.OrderUpdate):
-        print("Order updates", data)
+        self.current_orders.add_order(data)
