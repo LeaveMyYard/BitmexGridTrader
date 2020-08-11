@@ -22,22 +22,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.bottom_left_dockwidget: QtWidgets.QDockWidget = self.findChild(
             QtWidgets.QDockWidget, "dockWidget_2"
         )
-        self.top_right_dockwidget: QtWidgets.QDockWidget = self.findChild(
+        self.right_dockwidget: QtWidgets.QDockWidget = self.findChild(
             QtWidgets.QDockWidget, "dockWidget_3"
-        )
-        self.bottom_right_dockwidget: QtWidgets.QDockWidget = self.findChild(
-            QtWidgets.QDockWidget, "dockWidget_4"
         )
         self.bottom_dockwidget: QtWidgets.QDockWidget = self.findChild(
             QtWidgets.QDockWidget, "dockWidget_5"
         )
 
-        self.current_settings = UiModules.CurrentSettingsModule(
-            self.top_right_dockwidget
-        )
+        self.current_settings = UiModules.CurrentSettingsModule(self.right_dockwidget)
 
         self.setting_templates = UiModules.SettingTemplatesModule(
-            self.bottom_right_dockwidget
+            self.bottom_left_dockwidget
         )
 
         self.setting_templates.template_selected.connect(

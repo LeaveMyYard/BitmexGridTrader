@@ -48,24 +48,6 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_6"/>
   </widget>
-  <widget class="QDockWidget" name="dockWidget_4">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>80</width>
-     <height>200</height>
-    </size>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_7"/>
-  </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
