@@ -28,8 +28,12 @@ class CurrentOrdersModule(BaseUIModule):
             "Time",
         ]
 
-        self.table = QtWidgets.QTableWidget(len(self._order_dict), len(self.horizontalHeaderLabelsList))
-        self.table_historical = QtWidgets.QTableWidget(len(self._order_dict), len(self.horizontalHeaderLabelsList))
+        self.table = QtWidgets.QTableWidget(
+            len(self._order_dict), len(self.horizontalHeaderLabelsList)
+        )
+        self.table_historical = QtWidgets.QTableWidget(
+            len(self._order_dict), len(self.horizontalHeaderLabelsList)
+        )
 
         self.table.setSortingEnabled(True)
         self.table_historical.setSortingEnabled(True)
@@ -43,18 +47,18 @@ class CurrentOrdersModule(BaseUIModule):
         for i in range(len(self.horizontalHeaderLabelsList)):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
             header_historical.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
-            
+
         self.tabwidget = QtWidgets.QTabWidget()
         self.tabwidget.addTab(self.table, "Current orders")
         self.tabwidget.addTab(self.table_historical, "Historical orders")
-        
+
         self.layout.addWidget(self.tabwidget)
 
     def add_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
         order_id = order.client_orderID
 
         if order_id in self._order_dict.keys():
-            self._edit_order(order)
+            return self._edit_order(order)
         else:
             self.table.setSortingEnabled(False)
 
@@ -99,10 +103,10 @@ class CurrentOrdersModule(BaseUIModule):
         self.table.setRowCount(0)
 
         self.table.setSortingEnabled(True)
-        
+
     def _transfer_table(self) -> None:
         pass
-    
+
     @staticmethod
     def createItem(text: str) -> QtWidgets.QTableWidgetItem:
         tableWidgetItem = QtWidgets.QTableWidgetItem(text)
