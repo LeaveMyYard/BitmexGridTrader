@@ -14,6 +14,7 @@ class CurrentOrdersModule(BaseUIModule):
         self.base_widget.setLayout(self.layout)
 
         self._order_dict = {}
+        self._historical_order_dict = {}
 
         self.horizontalHeaderLabelsList = [
             "Order id",
@@ -82,7 +83,7 @@ class CurrentOrdersModule(BaseUIModule):
         order_index = self._order_dict[order_id][0]
 
         for i, value in enumerate(dataclasses.asdict(order).values()):
-            self.table.item(order_index, i).setText(str(value))
+            self.table.item(order_index - 1, i).setText(str(value))
 
         self.table.setSortingEnabled(True)
 
