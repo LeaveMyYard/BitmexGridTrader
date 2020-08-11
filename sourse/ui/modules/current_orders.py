@@ -1,7 +1,9 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
+from sourse.exchange_handlers import AbstractExchangeHandler
 import datetime
+import dataclasses
 import typing
 
 
@@ -32,7 +34,10 @@ class CurrentOrdersModule(BaseUIModule):
 
         self.layout.addWidget(self.table)
 
-    def add_order(self, order_id: str, price: float, volume: float, status: str) -> str:
+    def add_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
+        for key, value in dataclasses.asdict(order).items():
+            ... # TODO
+
         if order_id in self._order_dict.keys():
             self._edit_order(
                 order_id=order_id, price=price, volume=volume, status=status
