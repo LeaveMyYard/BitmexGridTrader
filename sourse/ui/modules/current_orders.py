@@ -16,6 +16,7 @@ class CurrentOrdersModule(BaseUIModule):
         self._historical_order_dict = {}
 
         self.counter = 0
+        self.historical_counter = 0
 
         self.horizontalHeaderLabelsList = [
             "Order id",
@@ -70,6 +71,8 @@ class CurrentOrdersModule(BaseUIModule):
 
         if order_id in self._order_dict.keys():
             res = self._edit_order(order)
+        elif order_id in self._historical_order_dict.keys():
+            res = self._edit_historical_order(order)
         else:
             self._order_dict[order_id] = (len(self._order_dict), order)
 
@@ -93,6 +96,42 @@ class CurrentOrdersModule(BaseUIModule):
 
         return res
 
+    def add_order_to_historical(
+        self, order: AbstractExchangeHandler.OrderUpdate
+    ) -> str:
+        order_id = order.client_orderID
+
+        current_sorted_index = (
+            self.table_historical.horizontalHeader().sortIndicatorSection()
+        )
+        current_sorted_type = (
+            self.table_historical.horizontalHeader().sortIndicatorOrder()
+        )
+        self.table_historical.sortItems(10, QtCore.Qt.AscendingOrder)
+        self.table_historical.setSortingEnabled(False)
+
+        # self._historical_order_dict[order_id] = (len(self._historical_order_dict), order)
+
+        self.table_historical.setRowCount(len(self._historical_order_dict))
+
+        for i, value in enumerate(dataclasses.asdict(order).values()):
+            self.table_historical.setItem(
+                len(self._historical_order_dict) - 1, i, self.createItem(str(value))
+            )
+
+        self.table_historical.setItem(
+            len(self._historical_order_dict) - 1,
+            10,
+            self.QTableWidgetIntegerItem(str(self.historical_counter)),
+        )
+        self.historical_counter += 1
+        res = order_id
+
+        self.table_historical.setSortingEnabled(True)
+        self.table_historical.sortItems(current_sorted_index, current_sorted_type)
+
+        return res
+
     def _edit_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
         order_id = order.client_orderID
         order_index = self._order_dict[order_id][0]
@@ -104,7 +143,19 @@ class CurrentOrdersModule(BaseUIModule):
 
         return order_id
 
+    def _edit_historical_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
+        order_id = order.client_orderID
+        order_index = self._historical_order_dict[order_id][0]
+
+        for i, (key, value) in enumerate(dataclasses.asdict(order).items()):
+            if key == "message":
+                continue
+            self.table_historical.item(order_index, i).setText(str(value))
+
+        return order_id
+
     def remove_order(self, order_id: int) -> None:
+        # TODO
         self.table.setSortingEnabled(False)
 
         del self._order_dict[order_id]
@@ -122,7 +173,12 @@ class CurrentOrdersModule(BaseUIModule):
         self.table.setSortingEnabled(True)
 
     def _transfer_table(self) -> None:
-        pass
+        for i in self._order_dict:
+            self._historical_order_dict[i] = (
+                len(self._historical_order_dict),
+                self._order_dict[i][1],
+            )
+            self.add_order_to_historical(self._historical_order_dict[i][1])
 
     class QTableWidgetIntegerItem(QtWidgets.QTableWidgetItem):
         def __lt__(self, other):
