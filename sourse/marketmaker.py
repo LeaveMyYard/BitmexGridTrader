@@ -232,7 +232,7 @@ class MarketMaker(QtCore.QObject):
             )
 
             self.order_updated.emit(order_update)
-        await self._create_orders(orders)
+        # await self._create_orders(orders)
 
     async def start(self):
         """Start the marketmaker bot."""
