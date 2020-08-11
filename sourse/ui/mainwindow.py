@@ -117,6 +117,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _on_grid_updates(
         self, orders: typing.List[typing.Tuple[str, float, float, str]]
     ):
+        # self.current_orders.remove_all_orders()
         self.chart.add_grid(
             [p for d, p, _, _ in orders if d == "Buy"],
             [p for d, p, _, _ in orders if d == "Sell"],
