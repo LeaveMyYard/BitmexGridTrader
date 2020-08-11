@@ -54,7 +54,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chart = UiModules.Chart(self)
 
         data_loading = asyncio.run_coroutine_threadsafe(
-            self.handle.load_historical_data("XBTUSD", "1m", 2000),
+            self.handle.load_historical_data("XBTUSD", "1m", 500),
             self.asyncio_event_loop,
         )
 
