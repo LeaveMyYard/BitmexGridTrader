@@ -28,7 +28,9 @@ class CurrentOrdersModule(BaseUIModule):
             "Time",
         ]
 
-        self.table = QtWidgets.QTableWidget(len(self._order_dict), len(self.horizontalHeaderLabelsList))
+        self.table = QtWidgets.QTableWidget(
+            len(self._order_dict), len(self.horizontalHeaderLabelsList)
+        )
 
         self.table.setSortingEnabled(True)
         self.table.setHorizontalHeaderLabels(self.horizontalHeaderLabelsList)
@@ -44,7 +46,7 @@ class CurrentOrdersModule(BaseUIModule):
         order_id = order.client_orderID
 
         if order_id in self._order_dict.keys():
-            self._edit_order(order)
+            return self._edit_order(order)
         else:
             self.table.setSortingEnabled(False)
 
