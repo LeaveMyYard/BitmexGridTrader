@@ -64,6 +64,9 @@ class CurrentSettingsModule(BaseUIModule):
                 if "suffix" in type_data:
                     params["setSuffix"] = (type_data["suffix"],)
 
+            elif type_data["type"] == "bool":
+                widget = QtWidgets.QCheckBox
+
             else:
                 raise ValueError
 
@@ -96,7 +99,7 @@ class CurrentSettingsModule(BaseUIModule):
             if running:
                 button.setText("Start bot")
                 self.stop_button_pressed.emit()
-                return
+                return  # TODO
             else:
                 button.setText("Stop bot")
                 self.start_button_pressed.emit()
@@ -139,7 +142,10 @@ class CurrentSettingsModule(BaseUIModule):
             label = QtWidgets.QLabel(value.name + ":")
             widget = value.widget_type(group_box)
 
-            widget.valueChanged.connect(self.settings_changed)
+            if value.widget_type is QtWidgets.QCheckBox:
+                widget.stateChanged.connect(self.settings_changed)
+            else:
+                widget.valueChanged.connect(self.settings_changed)
 
             self._setting_widgets[name] = widget
 
@@ -222,7 +228,11 @@ class CurrentSettingsModule(BaseUIModule):
             settings["templates"][name] = dict(
                 desc=desc,
                 **{
-                    name: widget.value()
+                    name: (
+                        widget.value()
+                        if widget.__class__ is not QtWidgets.QCheckBox
+                        else widget.checkState() == QtCore.Qt.Checked
+                    )
                     for name, widget in self._setting_widgets.items()
                 },
             )
@@ -239,13 +249,27 @@ class CurrentSettingsModule(BaseUIModule):
     @QtCore.pyqtSlot()
     def on_template_loaded(self, name: str, template: MarketMaker.Settings):
         for setting_name in self._setting_widgets:
-            self._setting_widgets[setting_name].setValue(
-                template.__getattribute__(setting_name)
-            )
+            if self._setting_widgets[setting_name].__class__ is QtWidgets.QCheckBox:
+                self._setting_widgets[setting_name].setCheckState(
+                    QtCore.Qt.Checked
+                    if template.__getattribute__(setting_name)
+                    else QtCore.Qt.Unchecked
+                )
+            else:
+                self._setting_widgets[setting_name].setValue(
+                    template.__getattribute__(setting_name)
+                )
 
     def get_current_settings(self) -> MarketMaker.Settings:
         return MarketMaker.Settings(
-            **{name: widget.value() for name, widget in self._setting_widgets.items()}
+            **{
+                name: (
+                    widget.value()
+                    if widget.__class__ is not QtWidgets.QCheckBox
+                    else widget.checkState() == QtCore.Qt.Checked
+                )
+                for name, widget in self._setting_widgets.items()
+            }
         )
 
     def get_current_keys(self) -> typing.Tuple[str, str]:

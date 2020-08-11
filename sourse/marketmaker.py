@@ -32,6 +32,7 @@ class MarketMaker(QtCore.QObject):
         min_spread: float
         stop_loss_fund: float
         rebuild_after_change: float
+        adjust_grid_by_position: bool
         min_position: int
         max_position: int
 
@@ -166,7 +167,8 @@ class MarketMaker(QtCore.QObject):
             for i in range(self.settings.orders_pairs):
                 start_price = (
                     self.position.price
-                    if self.position.volume > 0
+                    if self.settings.adjust_grid_by_position
+                    and self.position.volume > 0
                     and used_price + self.settings.min_spread // 2 < self.position.price
                     else used_price + self.settings.min_spread // 2
                 )
@@ -189,7 +191,8 @@ class MarketMaker(QtCore.QObject):
             for i in range(self.settings.orders_pairs):
                 start_price = (
                     self.position.price
-                    if self.position.volume < 0
+                    if self.settings.adjust_grid_by_position
+                    and self.position.volume < 0
                     and used_price - self.settings.min_spread // 2 > self.position.price
                     else used_price - self.settings.min_spread // 2
                 )
