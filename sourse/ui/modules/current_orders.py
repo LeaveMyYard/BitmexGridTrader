@@ -62,6 +62,8 @@ class CurrentOrdersModule(BaseUIModule):
             return self._edit_order(order)
         else:
             self.table.setSortingEnabled(False)
+            current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
+            current_sorted_type = self.table.horizontalHeader().sortIndicatorOrder()
 
             self._order_dict[order_id] = (len(self._order_dict), order)
 
