@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 import json
+import traceback
 import typing
 from datetime import datetime
 from dataclasses import dataclass
@@ -41,7 +42,8 @@ class MarketMaker(QtCore.QObject):
     @staticmethod
     async def minute_start():  # TODO as period_start()
         """minute_start will be working until a new minute starts."""
-        await asyncio.sleep(60 - (time.time() % 60))
+        duration = 10
+        await asyncio.sleep(duration - (time.time() % duration))
 
     def __init__(
         self,
@@ -248,6 +250,7 @@ class MarketMaker(QtCore.QObject):
                 await self._update_grid()
             except Exception as e:
                 print(e)
+                traceback.print_tb(e.__traceback__)
 
 
 def main():
