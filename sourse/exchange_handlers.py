@@ -212,13 +212,20 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def create_order(
-        self, symbol: str, side: str, price: float, volume: float
+        self,
+        symbol: str,
+        side: str,
+        price: float,
+        volume: float,
+        client_ordID: typing.Optional[str] = None,
     ) -> AbstractExchangeHandler.NewOrderData:
         ...
 
     @abc.abstractmethod
     async def create_orders(
-        self, symbol: str, data: typing.List[typing.Tuple[str, float, float]]
+        self,
+        symbol: str,
+        data: typing.List[typing.Tuple[str, float, float, typing.Optional[str]]],
     ) -> typing.List[AbstractExchangeHandler.NewOrderData]:
         ...
 
@@ -526,26 +533,54 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
                 break
 
     async def create_order(
-        self, symbol: str, side: str, price: float, volume: float
+        self,
+        symbol: str,
+        side: str,
+        price: float,
+        volume: float,
+        client_ordID: typing.Optional[str] = None,
     ) -> AbstractExchangeHandler.NewOrderData:
-        result = self._client.Order.Order_new(
-            symbol=symbol,
-            side=side,
-            orderQty=volume,
-            price=price,
-            ordType="Limit",
-            execInst="ParticipateDoNotInitiate",
-        ).result()[0]
+        if client_ordID is None:
+            result = self._client.Order.Order_new(
+                symbol=symbol,
+                side=side,
+                orderQty=volume,
+                price=price,
+                ordType="Limit",
+                execInst="ParticipateDoNotInitiate",
+            ).result()[0]
+        else:
+            result = self._client.Order.Order_new(
+                clOrdID=client_ordID,
+                symbol=symbol,
+                side=side,
+                orderQty=volume,
+                price=price,
+                ordType="Limit",
+                execInst="ParticipateDoNotInitiate",
+            ).result()[0]
 
         return AbstractExchangeHandler.NewOrderData(
             orderID=result["orderID"], client_orderID=result["clOrdID"]
         )
 
     async def create_orders(
-        self, symbol: str, data: typing.List[typing.Tuple[str, float, float]]
+        self,
+        symbol: str,
+        data: typing.List[typing.Tuple[str, float, float, typing.Optional[str]]],
     ) -> typing.List[AbstractExchangeHandler.NewOrderData]:
         orders = [
             dict(
+                symbol=symbol,
+                side=order_data[0],
+                orderQty=order_data[2],
+                price=order_data[1],
+                ordType="Limit",
+                execInst="ParticipateDoNotInitiate",
+            )
+            if len(order_data) == 3 or order_data[3] is None
+            else dict(
+                clOrdID=order_data[3],
                 symbol=symbol,
                 side=order_data[0],
                 orderQty=order_data[2],

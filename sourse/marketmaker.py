@@ -4,6 +4,7 @@ import asyncio
 import time
 import json
 import typing
+from datetime import datetime
 from dataclasses import dataclass
 
 from sourse.exchange_handlers import AbstractExchangeHandler, BitmexExchangeHandler
@@ -145,7 +146,7 @@ class MarketMaker(QtCore.QObject):
     ) -> typing.Tuple[str, float, float]:
         return ("Buy" if volume > 0 else "Sell", price, abs(volume))
 
-    def _generate_orders(self) -> typing.List[typing.Tuple[str, float, float]]:
+    def _generate_orders(self) -> typing.List[typing.Tuple[str, float, float, str]]:
         orders = []
 
         if self._current_price is None:
@@ -170,7 +171,12 @@ class MarketMaker(QtCore.QObject):
                 volume = -(
                     self.settings.orders_start_size + self.settings.order_step_size * i
                 )
-                orders.append(self.__convert_order_data(price, volume))
+                orders.append(
+                    (
+                        *self.__convert_order_data(price, volume),
+                        AbstractExchangeHandler.generate_client_order_id(),
+                    )
+                )
 
         # Creating long orders
         if self.position.volume < self.settings.max_position:
@@ -187,7 +193,12 @@ class MarketMaker(QtCore.QObject):
                 volume = (
                     self.settings.orders_start_size + self.settings.order_step_size * i
                 )
-                orders.append(self.__convert_order_data(price, volume))
+                orders.append(
+                    (
+                        *self.__convert_order_data(price, volume),
+                        AbstractExchangeHandler.generate_client_order_id(),
+                    )
+                )
 
         return orders
 
@@ -205,7 +216,23 @@ class MarketMaker(QtCore.QObject):
         # await self._cancel_orders()
         orders = self._generate_orders()
         self.grid_updates.emit(orders)
-        # await self._create_orders(orders)
+        for order in orders:
+            order_update = AbstractExchangeHandler.OrderUpdate(
+                orderID="",
+                client_orderID=order[3],
+                status="PENDING",
+                price=order[1],
+                average_price=-1,
+                fee=0,
+                fee_asset="XBT",
+                volume=order[2],
+                volume_realized=0,
+                time=None,
+                message={},
+            )
+
+            self.order_updated.emit(order_update)
+        await self._create_orders(orders)
 
     async def start(self):
         """Start the marketmaker bot."""
@@ -215,9 +242,12 @@ class MarketMaker(QtCore.QObject):
         await asyncio.sleep(2)
 
         while True:
-            await MarketMaker.minute_start()
-            self.period_updated.emit()
-            await self._update_grid()
+            try:
+                await MarketMaker.minute_start()
+                self.period_updated.emit()
+                await self._update_grid()
+            except Exception as e:
+                print(e)
 
 
 def main():

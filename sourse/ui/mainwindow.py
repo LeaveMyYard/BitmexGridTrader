@@ -119,13 +119,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chart.add_candle(candle_dict)
 
     @QtCore.pyqtSlot()
-    def _on_grid_updates(self, orders: typing.List[typing.Tuple[str, float, float]]):
-        print("Grid update")
+    def _on_grid_updates(
+        self, orders: typing.List[typing.Tuple[str, float, float, str]]
+    ):
         self.chart.add_grid(
-            [p for d, p, _ in orders if d == "Buy"],
-            [p for d, p, _ in orders if d == "Sell"],
+            [p for d, p, _, _ in orders if d == "Buy"],
+            [p for d, p, _, _ in orders if d == "Sell"],
         )
 
     @QtCore.pyqtSlot()
     def _on_order_updated(self, data: BitmexExchangeHandler.OrderUpdate):
-        print("Order updates", data.order_id, data.price, data.volume)
+        print("Order updates", data)
