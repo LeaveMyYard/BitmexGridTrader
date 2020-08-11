@@ -109,7 +109,7 @@ class MarketMaker(QtCore.QObject):
                 data.status,
             )
 
-            self.order_updated(data)
+            self.order_updated.emit(data)
 
             if data.status == "CANCELED" or data.status == "FILLED":
                 del self._current_orders[data.orderID]
@@ -213,7 +213,7 @@ class MarketMaker(QtCore.QObject):
             await self.handler.cancel_orders(list(self._current_orders.keys()))
 
     async def _update_grid(self):
-        # await self._cancel_orders()
+        await self._cancel_orders()
         orders = self._generate_orders()
         self.grid_updates.emit(orders)
         for order in orders:
@@ -225,14 +225,14 @@ class MarketMaker(QtCore.QObject):
                 average_price=-1,
                 fee=0,
                 fee_asset="XBT",
-                volume=order[2],
+                volume=order[2] if order[0] == "Buy" else -order[2],
                 volume_realized=0,
                 time=None,
                 message={},
             )
 
             self.order_updated.emit(order_update)
-        # await self._create_orders(orders)
+        await self._create_orders(orders)
 
     async def start(self):
         """Start the marketmaker bot."""
