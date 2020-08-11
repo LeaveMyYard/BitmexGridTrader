@@ -72,7 +72,7 @@ class CurrentOrdersModule(BaseUIModule):
         if order_id in self._order_dict.keys():
             res = self._edit_order(order)
         elif order_id in self._historical_order_dict.keys():
-            res = self._edit_historical_order(order)
+            res = self.add_order_to_historical(order)
         else:
             self._order_dict[order_id] = (len(self._order_dict), order)
 
@@ -112,20 +112,23 @@ class CurrentOrdersModule(BaseUIModule):
 
         # self._historical_order_dict[order_id] = (len(self._historical_order_dict), order)
 
-        self.table_historical.setRowCount(len(self._historical_order_dict))
+        if order_id in self._historical_order_dict.keys():
+            self._edit_historical_order(order)
+        else:
+            self.table_historical.setRowCount(len(self._historical_order_dict))
 
-        for i, value in enumerate(dataclasses.asdict(order).values()):
+            for i, value in enumerate(dataclasses.asdict(order).values()):
+                self.table_historical.setItem(
+                    len(self._historical_order_dict) - 1, i, self.createItem(str(value))
+                )
+
             self.table_historical.setItem(
-                len(self._historical_order_dict) - 1, i, self.createItem(str(value))
+                len(self._historical_order_dict) - 1,
+                10,
+                self.QTableWidgetIntegerItem(str(self.historical_counter)),
             )
-
-        self.table_historical.setItem(
-            len(self._historical_order_dict) - 1,
-            10,
-            self.QTableWidgetIntegerItem(str(self.historical_counter)),
-        )
-        self.historical_counter += 1
-        res = order_id
+            self.historical_counter += 1
+            res = order_id
 
         self.table_historical.setSortingEnabled(True)
         self.table_historical.sortItems(current_sorted_index, current_sorted_type)
@@ -174,11 +177,11 @@ class CurrentOrdersModule(BaseUIModule):
 
     def _transfer_table(self) -> None:
         for i in self._order_dict:
+            self.add_order_to_historical(self._order_dict[i][1])
             self._historical_order_dict[i] = (
                 len(self._historical_order_dict),
                 self._order_dict[i][1],
             )
-            self.add_order_to_historical(self._historical_order_dict[i][1])
 
     class QTableWidgetIntegerItem(QtWidgets.QTableWidgetItem):
         def __lt__(self, other):
