@@ -63,7 +63,7 @@ class CurrentOrdersModule(BaseUIModule):
         else:
             self.table.setSortingEnabled(False)
 
-            self._order_dict[order_id] = (len(self._order_dict) - 1, order)
+            self._order_dict[order_id] = (len(self._order_dict), order)
 
             self.table.setRowCount(len(self._order_dict))
 
@@ -82,8 +82,10 @@ class CurrentOrdersModule(BaseUIModule):
         order_id = order.client_orderID
         order_index = self._order_dict[order_id][0]
 
-        for i, value in enumerate(dataclasses.asdict(order).values()):
-            self.table.item(order_index - 1, i).setText(str(value))
+        for i, (key, value) in enumerate(dataclasses.asdict(order).items()):
+            if key == "message":
+                continue
+            self.table.item(order_index, i).setText(str(value))
 
         self.table.setSortingEnabled(True)
 
