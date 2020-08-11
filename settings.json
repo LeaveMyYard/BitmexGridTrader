@@ -1,1 +1,138 @@
-{"bitmex_client": {"pair": "XBTUSD", "public_key": "VMWmsl1N-EZtSB8HjLmgv4GQ", "private_key": "kJIvv60NCZu-mFWnxsrOeOAGB4VaEphnEZEZKdzISmZkc5wv"}, "marketmaker_settings": {"orders_pairs": 10, "orders_start_size": 25, "order_step_size": 50, "interval": 0.5, "min_spread": 2.5, "stop_loss_fund": 0.01, "min_position": -100, "max_position": 100}, "templates": {"Flat": {"desc": "Designed for the market conditions, where the price stays the same during some time", "orders_pairs": 10, "orders_start_size": 25, "order_step_size": 50, "interval": 0.5, "min_spread": 2.5, "stop_loss_fund": 0.01, "min_position": -100, "max_position": 100}, "Bull": {"desc": "Designed for the market conditions, where the price is going up", "orders_pairs": 100, "orders_start_size": 250, "order_step_size": 500, "interval": 5, "min_spread": 25, "stop_loss_fund": 0.1, "min_position": -1000, "max_position": 1000}, "Bear": {"desc": "Designed for the market conditions, where the price is gowing down", "orders_pairs": 1000, "orders_start_size": 2500, "order_step_size": 5000, "interval": 50, "min_spread": 250, "stop_loss_fund": 1, "min_position": -10000, "max_position": 10000}}, "settings_description": {"orders_pairs": {"name": "Order pairs", "desc": "Amount of orders on each side of the grid", "type_data": {"type": "int", "minimum": 1, "maximum": 100, "suffix": " pairs"}}, "orders_start_size": {"name": "Order start size", "desc": "The volume of the first order in each side of the grid (in contracts)", "type_data": {"type": "int", "minimum": 1, "maximum": 99999, "suffix": " contracts"}}, "order_step_size": {"name": "Order step size", "desc": "The amount of volume size, added to each next volume in a grid (in contracts)", "type_data": {"type": "int", "minimum": 0, "maximum": 99999, "suffix": " contracts"}}, "interval": {"name": "Interval", "desc": "The distance between two consecutive orders on each size (in quote)", "type_data": {"type": "float", "minimum": 0.5, "maximum": 99999, "decimals": 1, "step": 0.5}}, "min_spread": {"name": "Minimal spread", "desc": "The distance between the first buy and the first sell order (in quote)", "type_data": {"type": "float", "minimum": 0.5, "maximum": 99999, "decimals": 1, "step": 0.5}}, "stop_loss_fund": {"name": "Stop loss fund", "desc": "The amount of bitcoins, that are allowed to loose per position. The stop-loss order price is calculated.", "type_data": {"type": "float", "minimum": 0.0001, "maximum": 99999, "decimals": 4, "step": 0.0001, "suffix": " BTC"}}, "min_position": {"name": "Minimal position", "desc": "The minimal size of the position (in contracts)", "type_data": {"type": "int", "minimum": -1000000, "maximum": 0, "suffix": " contracts"}}, "max_position": {"name": "Order pairs", "desc": "The maximal size of the position (in contracts)", "type_data": {"type": "int", "minimum": 0, "maximum": 1000000, "suffix": " contracts"}}}}
+{
+    "bitmex_client": {
+        "pair": "XBTUSD",
+        "public_key": "VMWmsl1N-EZtSB8HjLmgv4GQ",
+        "private_key": "kJIvv60NCZu-mFWnxsrOeOAGB4VaEphnEZEZKdzISmZkc5wv"
+    },
+    "marketmaker_settings": {
+        "orders_pairs": 10,
+        "orders_start_size": 25,
+        "order_step_size": 50,
+        "interval": 0.5,
+        "min_spread": 2.5,
+        "stop_loss_fund": 0.01,
+        "min_position": -100,
+        "max_position": 100
+    },
+    "templates": {
+        "Flat": {
+            "desc": "Designed for the market conditions, where the price stays the same during some time",
+            "orders_pairs": 10,
+            "orders_start_size": 25,
+            "order_step_size": 50,
+            "interval": 0.5,
+            "min_spread": 2.5,
+            "stop_loss_fund": 0.01,
+            "min_position": -100,
+            "max_position": 100
+        },
+        "Bull": {
+            "desc": "Designed for the market conditions, where the price is going up",
+            "orders_pairs": 100,
+            "orders_start_size": 250,
+            "order_step_size": 500,
+            "interval": 5,
+            "min_spread": 25,
+            "stop_loss_fund": 0.1,
+            "min_position": -1000,
+            "max_position": 1000
+        },
+        "Bear": {
+            "desc": "Designed for the market conditions, where the price is gowing down",
+            "orders_pairs": 1000,
+            "orders_start_size": 2500,
+            "order_step_size": 5000,
+            "interval": 50,
+            "min_spread": 250,
+            "stop_loss_fund": 1,
+            "min_position": -10000,
+            "max_position": 10000
+        }
+    },
+    "settings_description": {
+        "orders_pairs": {
+            "name": "Order pairs",
+            "desc": "Amount of orders on each side of the grid",
+            "type_data": {
+                "type": "int",
+                "minimum": 1,
+                "maximum": 100,
+                "suffix": " pairs"
+            }
+        },
+        "orders_start_size": {
+            "name": "Order start size",
+            "desc": "The volume of the first order in each side of the grid (in contracts)",
+            "type_data": {
+                "type": "int",
+                "minimum": 1,
+                "maximum": 99999,
+                "suffix": " contracts"
+            }
+        },
+        "order_step_size": {
+            "name": "Order step size",
+            "desc": "The amount of volume size, added to each next volume in a grid (in contracts)",
+            "type_data": {
+                "type": "int",
+                "minimum": 0,
+                "maximum": 99999,
+                "suffix": " contracts"
+            }
+        },
+        "interval": {
+            "name": "Interval",
+            "desc": "The distance between two consecutive orders on each size (in quote)",
+            "type_data": {
+                "type": "float",
+                "minimum": 0.5,
+                "maximum": 99999,
+                "decimals": 1,
+                "step": 0.5
+            }
+        },
+        "min_spread": {
+            "name": "Minimal spread",
+            "desc": "The distance between the first buy and the first sell order (in quote)",
+            "type_data": {
+                "type": "float",
+                "minimum": 0.5,
+                "maximum": 99999,
+                "decimals": 1,
+                "step": 0.5
+            }
+        },
+        "stop_loss_fund": {
+            "name": "Stop loss fund",
+            "desc": "The amount of bitcoins, that are allowed to loose per position. The stop-loss order price is calculated.",
+            "type_data": {
+                "type": "float",
+                "minimum": 0.0001,
+                "maximum": 99999,
+                "decimals": 4,
+                "step": 0.0001,
+                "suffix": " BTC"
+            }
+        },
+        "min_position": {
+            "name": "Minimal position",
+            "desc": "The minimal size of the position (in contracts)",
+            "type_data": {
+                "type": "int",
+                "minimum": -1000000,
+                "maximum": 0,
+                "suffix": " contracts"
+            }
+        },
+        "max_position": {
+            "name": "Maximal position",
+            "desc": "The maximal size of the position (in contracts)",
+            "type_data": {
+                "type": "int",
+                "minimum": 0,
+                "maximum": 1000000,
+                "suffix": " contracts"
+            }
+        }
+    }
+}
