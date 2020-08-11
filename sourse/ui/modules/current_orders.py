@@ -115,7 +115,7 @@ class CurrentOrdersModule(BaseUIModule):
     def remove_all_orders(self) -> None:
         self.table.setSortingEnabled(False)
 
-        self._transfer_table()
+        # self._transfer_table()
         self._order_dict = {}
         self.table.setRowCount(0)
 
