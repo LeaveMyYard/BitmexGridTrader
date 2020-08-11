@@ -31,6 +31,7 @@ class MarketMaker(QtCore.QObject):
         interval: float
         min_spread: float
         stop_loss_fund: float
+        rebuild_after_change: float
         min_position: int
         max_position: int
 
@@ -70,6 +71,7 @@ class MarketMaker(QtCore.QObject):
 
         self._current_orders: typing.Dict[str, str] = {}
         self._current_price: typing.Optional[float] = None
+        self._grid_price: typing.Optional[float] = None
 
     def _on_order_filled(self, order: AbstractExchangeHandler.OrderUpdate):
         if self.position.volume == 0:
@@ -156,17 +158,19 @@ class MarketMaker(QtCore.QObject):
                 "Current price is not loaded yet, can not generate orders"
             )
 
+        used_price = self._current_price
+        self._grid_price = used_price
+
         # Creating short orders
         if self.position.volume > self.settings.min_position:
             for i in range(self.settings.orders_pairs):
                 start_price = (
                     self.position.price
                     if self.position.volume > 0
-                    and self._current_price + self.settings.min_spread // 2
-                    < self.position.price
-                    else self._current_price + self.settings.min_spread // 2
+                    and used_price + self.settings.min_spread // 2 < self.position.price
+                    else used_price + self.settings.min_spread // 2
                 )
-                price = self._current_price + (
+                price = used_price + (
                     self.settings.min_spread // 2 + i * self.settings.interval
                 )
                 price = round(int(price * 2) / 2, 1)
@@ -186,9 +190,8 @@ class MarketMaker(QtCore.QObject):
                 start_price = (
                     self.position.price
                     if self.position.volume < 0
-                    and self._current_price - self.settings.min_spread // 2
-                    > self.position.price
-                    else self._current_price - self.settings.min_spread // 2
+                    and used_price - self.settings.min_spread // 2 > self.position.price
+                    else used_price - self.settings.min_spread // 2
                 )
                 price = start_price - i * self.settings.interval
                 price = round(int(price * 2) / 2, 1)
@@ -247,10 +250,17 @@ class MarketMaker(QtCore.QObject):
             try:
                 await MarketMaker.minute_start()
                 self.period_updated.emit()
-                await self._update_grid()
+                if (
+                    self._grid_price is None
+                    or 100
+                    * abs(self._grid_price - self._current_price)
+                    / self._current_price
+                    >= self.settings.rebuild_after_change
+                ):
+                    await self._update_grid()
             except Exception as e:
-                print(e)
                 traceback.print_tb(e.__traceback__)
+                print(r.__class__.__name__, e, "\n")
 
 
 def main():
