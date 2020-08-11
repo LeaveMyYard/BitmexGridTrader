@@ -13,72 +13,62 @@ class CurrentOrdersModule(BaseUIModule):
         self.parent_widget.setWindowTitle("Current Orders")
         self.base_widget.setLayout(self.layout)
 
-        self._current_id = 0
         self._order_dict = {}
 
-        self.table = QtWidgets.QTableWidget(len(self._order_dict), 6)
+        self.horizontalHeaderLabelsList = [
+            "Order id",
+            "Client order id",
+            "Status",
+            "Price",
+            "Average price",
+            "Fee",
+            "Fee asset",
+            "Volume",
+            "Volume realized",
+            "Time",
+        ]
+
+        self.table = QtWidgets.QTableWidget(len(self._order_dict), len(self.horizontalHeaderLabelsList))
 
         self.table.setSortingEnabled(True)
-        self.table.setHorizontalHeaderLabels(
-            ["id", "Time", "Side", "Price", "Volume", "Status"]
-        )
+        self.table.setHorizontalHeaderLabels(self.horizontalHeaderLabelsList)
         self.table.verticalHeader().hide()
 
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(4, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(5, QtWidgets.QHeaderView.Stretch)
+        for i in range(len(self.horizontalHeaderLabelsList)):
+            header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
 
         self.layout.addWidget(self.table)
 
     def add_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
-        for key, value in dataclasses.asdict(order).items():
-            ... # TODO
+        order_id = order.client_orderID
 
         if order_id in self._order_dict.keys():
-            self._edit_order(
-                order_id=order_id, price=price, volume=volume, status=status
-            )
+            self._edit_order(order)
+        else:
+            self.table.setSortingEnabled(False)
 
+            self._order_dict[order_id] = order
+
+            self.table.setRowCount(len(self._order_dict))
+
+            for i, value in enumerate(dataclasses.asdict(order).values()):
+                self.table.setItem(
+                    len(self._order_dict) - 1, i, self.createItem(str(value))
+                )
+
+            self.table.setSortingEnabled(True)
+
+            return order_id
+
+    def _edit_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
         self.table.setSortingEnabled(False)
 
-        self._current_id += 1
-        order_id = self._current_id
-
-        self._order_dict[order_id] = Order(price=price, volume=volume)
-
-        self.table.setRowCount(len(self._order_dict))
-
-        self.table.setItem(len(self._order_dict) - 1, 0, self.createItem(str(order_id)))
-        for i, value in enumerate(self._order_dict[order_id].to_dict().values()):
-            self.table.setItem(
-                len(self._order_dict) - 1, i + 1, self.createItem(str(value))
-            )
-
-        self.table.setSortingEnabled(True)
-
-        return order_id
-
-    def _edit_order(
-        self, order_id: str, price: float, volume: float, status: str
-    ) -> str:
-        self.table.setSortingEnabled(False)
-
-        tmp_order = self._order_dict[order_id]
+        order_id = order.client_orderID
         order_index = list(self._order_dict.keys()).index(order_id)
 
-        if price != tmp_order.price:
-            self._order_dict[order_id].price = price
-            self.table.item(3, order_index).setText(str(price))
-        if volume != tmp_order.volume:
-            self._order_dict[order_id].volume = volume
-            self.table.item(4, order_index).setText(str(volume))
-        if status != tmp_order.status:
-            self._order_dict[order_id].status = status
-            self.table.item(5, order_index).setText(str(status))
+        for i, value in enumerate(dataclasses.asdict(order).values()):
+            self.table.item(order_index, i).setText(str(value))
 
         self.table.setSortingEnabled(True)
 
@@ -106,22 +96,3 @@ class CurrentOrdersModule(BaseUIModule):
         tableWidgetItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
         return tableWidgetItem
-
-
-class Order:
-    def __init__(self, price: float, volume: float, status: str = None):
-        self.price = price
-        self.volume = volume
-
-        self.side = "Buy" if volume > 0 else "Sell"
-        self.time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        self.status = status
-
-    def to_dict(self):
-        return dict(
-            time=self.time,
-            side=self.side,
-            price=self.price,
-            volume=abs(self.volume),
-            status=self.status,
-        )
