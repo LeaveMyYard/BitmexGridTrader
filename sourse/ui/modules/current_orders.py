@@ -1,9 +1,7 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from sourse.exchange_handlers import AbstractExchangeHandler
-import datetime
 import dataclasses
-import typing
 
 
 class CurrentOrdersModule(BaseUIModule):
@@ -31,6 +29,15 @@ class CurrentOrdersModule(BaseUIModule):
             "Time",
             "id",
         ]
+        
+        self.colorfull_dictionary = {
+            3 : 7,
+            5 : 5,
+            7 : 7
+        }
+        
+        self.color_green = QtGui.QBrush(QtGui.QColor(0, 255, 0))
+        self.color_red   = QtGui.QBrush(QtGui.QColor(255, 0, 0))
 
         self.table = QtWidgets.QTableWidget(
             len(self._order_dict), len(self.horizontalHeaderLabelsList)
@@ -58,10 +65,14 @@ class CurrentOrdersModule(BaseUIModule):
 
         self.layout.addWidget(self.tabwidget)
         self.table.sortItems(10, QtCore.Qt.AscendingOrder)
+        self.table_historical.sortItems(10, QtCore.Qt.AscendingOrder)
 
         self.table.setColumnHidden(10, True)
+        self.table_historical.setColumnHidden(10, True)
 
-    def add_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
+    def add_order(
+        self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
+    ) -> str:
         order_id = order.client_orderID
 
         current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
@@ -69,102 +80,91 @@ class CurrentOrdersModule(BaseUIModule):
         self.table.sortItems(10, QtCore.Qt.AscendingOrder)
         self.table.setSortingEnabled(False)
 
-        if order_id in self._order_dict.keys():
-            res = self._edit_order(order)
-        elif order_id in self._historical_order_dict.keys():
-            res = self.add_order_to_historical(order)
-        else:
-            self._order_dict[order_id] = (len(self._order_dict), order)
-
-            self.table.setRowCount(len(self._order_dict))
-
-            for i, value in enumerate(dataclasses.asdict(order).values()):
-                self.table.setItem(
-                    len(self._order_dict) - 1, i, self.createItem(str(value))
-                )
-
-            self.table.setItem(
-                len(self._order_dict) - 1,
-                10,
-                self.QTableWidgetIntegerItem(str(self.counter)),
-            )
-            self.counter += 1
-            res = order_id
-
-        self.table.setSortingEnabled(True)
-        self.table.sortItems(current_sorted_index, current_sorted_type)
-
-        return res
-
-    def add_order_to_historical(
-        self, order: AbstractExchangeHandler.OrderUpdate
-    ) -> str:
-        order_id = order.client_orderID
-
-        current_sorted_index = (
+        current_sorted_historical_index = (
             self.table_historical.horizontalHeader().sortIndicatorSection()
         )
-        current_sorted_type = (
+        current_sorted_historical_type = (
             self.table_historical.horizontalHeader().sortIndicatorOrder()
         )
         self.table_historical.sortItems(10, QtCore.Qt.AscendingOrder)
         self.table_historical.setSortingEnabled(False)
 
-        # self._historical_order_dict[order_id] = (len(self._historical_order_dict), order)
+        if not historical_table:
+            if order_id in self._order_dict.keys():
+                res = self._edit_order(order)
+            elif order_id in self._historical_order_dict.keys():
+                res = self.add_order(order, True)
+            else:
+                self._order_dict[order_id] = (len(self._order_dict), order)
 
-        if order_id in self._historical_order_dict.keys():
-            self._edit_historical_order(order)
+                self.table.setRowCount(len(self._order_dict))
+
+                for i, value in enumerate(dataclasses.asdict(order).values()):
+                    self.table.setItem(
+                        len(self._order_dict) - 1, i, self.createItem(str(value), i)
+                    )
+
+                self.table.setItem(
+                    len(self._order_dict) - 1,
+                    10,
+                    self.QTableWidgetIntegerItem(str(self.counter)),
+                )
+                self.counter += 1
+                res = order_id
         else:
-            self.table_historical.setRowCount(len(self._historical_order_dict))
-
-            for i, value in enumerate(dataclasses.asdict(order).values()):
-                self.table_historical.setItem(
-                    len(self._historical_order_dict) - 1, i, self.createItem(str(value))
+            if order_id in self._historical_order_dict.keys():
+                res = self._edit_order(order, True)
+            else:
+                self._historical_order_dict[order_id] = (
+                    len(self._historical_order_dict),
+                    order,
                 )
 
-            self.table_historical.setItem(
-                len(self._historical_order_dict) - 1,
-                10,
-                self.QTableWidgetIntegerItem(str(self.historical_counter)),
-            )
-            self.historical_counter += 1
-            res = order_id
+                self.table_historical.setRowCount(len(self._historical_order_dict))
 
+                for i, value in enumerate(dataclasses.asdict(order).values()):
+                    self.table_historical.setItem(
+                        len(self._historical_order_dict) - 1,
+                        i,
+                        self.createItem(str(value), i),
+                    )
+
+                self.table_historical.setItem(
+                    len(self._historical_order_dict) - 1,
+                    10,
+                    self.QTableWidgetIntegerItem(str(self.historical_counter)),
+                )
+                self.historical_counter += 1
+                res = order_id
+
+        self.table.setSortingEnabled(True)
+        self.table.sortItems(current_sorted_index, current_sorted_type)
         self.table_historical.setSortingEnabled(True)
-        self.table_historical.sortItems(current_sorted_index, current_sorted_type)
+        self.table_historical.sortItems(
+            current_sorted_historical_index, current_sorted_historical_type
+        )
 
         return res
 
-    def _edit_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
+    def _edit_order(
+        self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
+    ) -> str:
         order_id = order.client_orderID
-        order_index = self._order_dict[order_id][0]
+        order_index = (
+            (self._historical_order_dict[order_id][0])
+            if historical_table
+            else (self._order_dict[order_id][0])
+        )
 
         for i, (key, value) in enumerate(dataclasses.asdict(order).items()):
             if key == "message":
                 continue
-            self.table.item(order_index, i).setText(str(value))
+            elif not historical_table:
+                self.table.item(order_index, i).setText(str(value))
+            else:
+                self.table_historical.item(order_index, i).setText(str(value))
 
         return order_id
-
-    def _edit_historical_order(self, order: AbstractExchangeHandler.OrderUpdate) -> str:
-        order_id = order.client_orderID
-        order_index = self._historical_order_dict[order_id][0]
-
-        for i, (key, value) in enumerate(dataclasses.asdict(order).items()):
-            if key == "message":
-                continue
-            self.table_historical.item(order_index, i).setText(str(value))
-
-        return order_id
-
-    def remove_order(self, order_id: int) -> None:
-        # TODO
-        self.table.setSortingEnabled(False)
-
-        del self._order_dict[order_id]
-        self.table.removeRow(list(self._order_dict.keys()).index(order_id))
-
-        self.table.setSortingEnabled(True)
 
     def remove_all_orders(self) -> None:
         self.table.setSortingEnabled(False)
@@ -177,19 +177,16 @@ class CurrentOrdersModule(BaseUIModule):
 
     def _transfer_table(self) -> None:
         for i in self._order_dict:
-            self.add_order_to_historical(self._order_dict[i][1])
-            self._historical_order_dict[i] = (
-                len(self._historical_order_dict),
-                self._order_dict[i][1],
-            )
+            self.add_order(self._order_dict[i][1], True)
 
     class QTableWidgetIntegerItem(QtWidgets.QTableWidgetItem):
         def __lt__(self, other):
             return int(self.text()) < int(other.text())
 
-    @staticmethod
-    def createItem(text: str) -> QtWidgets.QTableWidgetItem:
+    def createItem(self, text: str, col: int) -> QtWidgets.QTableWidgetItem:
         tableWidgetItem = QtWidgets.QTableWidgetItem(text)
+        if col in self.colorfull_dictionary.keys():
+            tableWidgetItem.setForeground(self.color_green if float(text) > 0 else self.color_red)
         tableWidgetItem.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         return tableWidgetItem
