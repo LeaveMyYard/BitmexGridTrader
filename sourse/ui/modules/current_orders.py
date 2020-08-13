@@ -2,6 +2,7 @@ from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets, QtCore, QtGui
 from sourse.exchange_handlers import AbstractExchangeHandler
 import dataclasses
+import typing
 
 
 class CurrentOrdersModule(BaseUIModule):
@@ -29,15 +30,10 @@ class CurrentOrdersModule(BaseUIModule):
             "Time",
             "id",
         ]
-        
-        self.colorfull_dictionary = {
-            3 : 7,
-            5 : 5,
-            7 : 7
-        }
-        
-        self.color_green = QtGui.QBrush(QtGui.QColor(0, 255, 0))
-        self.color_red   = QtGui.QBrush(QtGui.QColor(255, 0, 0))
+
+        self.colorfull_dictionary = {2: 2, 3: 7, 5: 5, 7: 7}
+
+        self.color = Colors()
 
         self.table = QtWidgets.QTableWidget(
             len(self._order_dict), len(self.horizontalHeaderLabelsList)
@@ -58,6 +54,9 @@ class CurrentOrdersModule(BaseUIModule):
         for i in range(len(self.horizontalHeaderLabelsList)):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
             header_historical.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
+        header_historical.setSectionResizeMode(
+            10, QtWidgets.QHeaderView.ResizeToContents
+        )
 
         self.tabwidget = QtWidgets.QTabWidget()
         self.tabwidget.addTab(self.table, "Current orders")
@@ -68,7 +67,7 @@ class CurrentOrdersModule(BaseUIModule):
         self.table_historical.sortItems(10, QtCore.Qt.AscendingOrder)
 
         self.table.setColumnHidden(10, True)
-        self.table_historical.setColumnHidden(10, True)
+        # self.table_historical.setColumnHidden(10, True)
 
     def add_order(
         self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
@@ -100,8 +99,30 @@ class CurrentOrdersModule(BaseUIModule):
                 self.table.setRowCount(len(self._order_dict))
 
                 for i, value in enumerate(dataclasses.asdict(order).values()):
+                    if i in self.colorfull_dictionary.keys():
+                        j = list(dataclasses.asdict(order).values())[
+                            self.colorfull_dictionary[i]
+                        ]
+                        try:
+                            color = (
+                                self.color.green
+                                if float(j) > 0
+                                else self.color.red
+                                if float(j) < 0
+                                else self.color.white
+                            )
+                        except:
+                            color = (
+                                self.color.green
+                                if str(j) == "FILLED"
+                                else self.color.red
+                                if str(j) == "CANCELED"
+                                else self.color.white
+                            )
+                    else:
+                        color = self.color.white
                     self.table.setItem(
-                        len(self._order_dict) - 1, i, self.createItem(str(value), i)
+                        len(self._order_dict) - 1, i, self.createItem(str(value), color)
                     )
 
                 self.table.setItem(
@@ -123,10 +144,32 @@ class CurrentOrdersModule(BaseUIModule):
                 self.table_historical.setRowCount(len(self._historical_order_dict))
 
                 for i, value in enumerate(dataclasses.asdict(order).values()):
+                    if i in self.colorfull_dictionary.keys():
+                        j = list(dataclasses.asdict(order).values())[
+                            self.colorfull_dictionary[i]
+                        ]
+                        try:
+                            color = (
+                                self.color.green
+                                if float(j) > 0
+                                else self.color.red
+                                if float(j) < 0
+                                else self.color.white
+                            )
+                        except:
+                            color = (
+                                self.color.green
+                                if str(j) == "FILLED"
+                                else self.color.red
+                                if str(j) == "CANCELED"
+                                else self.color.white
+                            )
+                    else:
+                        color = self.color.white
                     self.table_historical.setItem(
                         len(self._historical_order_dict) - 1,
                         i,
-                        self.createItem(str(value), i),
+                        self.createItem(str(value), color),
                     )
 
                 self.table_historical.setItem(
@@ -157,12 +200,32 @@ class CurrentOrdersModule(BaseUIModule):
         )
 
         for i, (key, value) in enumerate(dataclasses.asdict(order).items()):
+            color = (
+                self.color.green
+                if value == "FILLED"
+                else self.color.red
+                if value == "CANCELED"
+                else self.color.yellow
+                if value == "NEW"
+                else self.color.darkorange
+                if value == "PENDING"
+                else None
+            )
+
             if key == "message":
                 continue
             elif not historical_table:
                 self.table.item(order_index, i).setText(str(value))
+                if color is not None:
+                    self.table.item(order_index, i).setForeground(
+                        QtGui.QBrush(QtGui.QColor(*color))
+                    )
             else:
                 self.table_historical.item(order_index, i).setText(str(value))
+                if color is not None:
+                    self.table_historical.item(order_index, i).setForeground(
+                        QtGui.QBrush(QtGui.QColor(*color))
+                    )
 
         return order_id
 
@@ -183,10 +246,22 @@ class CurrentOrdersModule(BaseUIModule):
         def __lt__(self, other):
             return int(self.text()) < int(other.text())
 
-    def createItem(self, text: str, col: int) -> QtWidgets.QTableWidgetItem:
+    def createItem(
+        self, text: str, color: typing.Tuple[int, int, int]
+    ) -> QtWidgets.QTableWidgetItem:
         tableWidgetItem = QtWidgets.QTableWidgetItem(text)
-        if col in self.colorfull_dictionary.keys():
-            tableWidgetItem.setForeground(self.color_green if float(text) > 0 else self.color_red)
+        tableWidgetItem.setForeground(QtGui.QBrush(QtGui.QColor(*color)))
         tableWidgetItem.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         return tableWidgetItem
+
+
+class Colors:
+    def __init__(self):
+        self.red = (255, 0, 0)
+        self.green = (0, 255, 0)
+        self.white = (255, 255, 255)
+        self.black = (0, 0, 0)
+        self.yellow = (255, 255, 0)
+        self.darkorange = (255, 140, 0)
+        self.blue = (0, 0, 255)

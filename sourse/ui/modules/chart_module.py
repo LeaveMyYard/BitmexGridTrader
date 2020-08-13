@@ -179,7 +179,7 @@ class Chart(QtCore.QObject):
             line = self.graphWidget.plot(
                 x=[now_id + 1.5, now_id + 2.5],
                 y=[buy_order] * 2,
-                pen=pyqtgraph.mkPen("32CD32"),  # "#EF5350"),
+                pen=pyqtgraph.mkPen("#32CD32"),  # "#EF5350"),
             )
 
         for sell_order in sell_grid:
