@@ -17,6 +17,7 @@ def main():
     # asyncio.get_child_watcher().attach_loop(loop)
     threading.Thread(target=spin_loop, daemon=True).start()
 
+    QtWidgets.QApplication.setStyle('Fusion')
     app = QtWidgets.QApplication([])
     window = MainWindow(loop)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())

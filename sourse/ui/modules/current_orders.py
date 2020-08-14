@@ -76,8 +76,8 @@ class CurrentOrdersModule(BaseUIModule):
         self.table_historical.sortItems(10, QtCore.Qt.AscendingOrder)
 
         self.table.setColumnHidden(10, True)
-        # self.table_historical.setColumnHidden(10, True)
-
+        self.table_historical.setColumnHidden(10, True)
+        
     def add_order(
         self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
     ) -> str:
@@ -97,7 +97,7 @@ class CurrentOrdersModule(BaseUIModule):
             DESCRIPTION.
 
         """
-        order_id = order.client_orderID if order.client_orderID != '' else order.orderID
+        order_id = order.client_orderID if order.client_orderID != "" else order.orderID
 
         current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
         current_sorted_type = self.table.horizontalHeader().sortIndicatorOrder()
@@ -125,7 +125,7 @@ class CurrentOrdersModule(BaseUIModule):
 
                 for i, value in enumerate(dataclasses.asdict(order).values()):
                     color, value = self.highlight(i, order, value)
-                            
+
                     self.table.setItem(
                         len(self._order_dict) - 1, i, self.createItem(str(value), color)
                     )
@@ -150,7 +150,7 @@ class CurrentOrdersModule(BaseUIModule):
 
                 for i, value in enumerate(dataclasses.asdict(order).values()):
                     color, value = self.highlight(i, order, value)
-                        
+
                     self.table_historical.setItem(
                         len(self._historical_order_dict) - 1,
                         i,
@@ -193,15 +193,15 @@ class CurrentOrdersModule(BaseUIModule):
             DESCRIPTION.
 
         """
-        order_id = order.client_orderID if order.client_orderID != '' else order.orderID
-        
+        order_id = order.client_orderID if order.client_orderID != "" else order.orderID
+
         if historical_table:
             order_index = self._historical_order_dict[order_id][0]
             self._historical_order_dict[order_id] = order_index, order
         else:
             order_index = self._order_dict[order_id][0]
             self._order_dict[order_id] = order_index, order
-        
+
         for i, (key, value) in enumerate(dataclasses.asdict(order).items()):
             color, value = self.highlight(i, order, value)
 
@@ -221,32 +221,33 @@ class CurrentOrdersModule(BaseUIModule):
         return order_id
 
     def highlight(
-            self, i: int, order: AbstractExchangeHandler.OrderUpdate, value: typing.Union[int, float, str]
+        self,
+        i: int,
+        order: AbstractExchangeHandler.OrderUpdate,
+        value: typing.Union[int, float, str],
     ) -> typing.Tuple[typing.Tuple[int, int, int], typing.Union[int, float, str]]:
         if i in self.colorfull_dictionary.keys():
-            j = list(dataclasses.asdict(order).values())[
-                self.colorfull_dictionary[i]
-            ]
+            j = list(dataclasses.asdict(order).values())[self.colorfull_dictionary[i]]
             try:
                 if i == 5:
                     if float(j) < 0:
-                        color = self.color.green
+                        color = self.color.limegreen
                     elif float(j) > 0:
-                        color = self.color.red
+                        color = self.color.orangered
                     else:
                         color = self.color.yellow
                     value = np.format_float_positional(value)
                 elif float(j) > 0:
-                    color = self.color.green
+                    color = self.color.limegreen
                 elif float(j) < 0:
-                    color = self.color.red
-                else: 
+                    color = self.color.orangered
+                else:
                     color = self.color.yellow
             except:
                 color = (
-                    self.color.green
+                    self.color.limegreen
                     if str(j) == "FILLED"
-                    else self.color.red
+                    else self.color.orangered
                     if str(j) == "CANCELED"
                     else self.color.yellow
                     if str(j) == "NEW"
@@ -257,7 +258,6 @@ class CurrentOrdersModule(BaseUIModule):
         else:
             color = self.color.white
         return color, value
-        
 
     def remove_all_orders(self) -> None:
         """
@@ -336,10 +336,18 @@ class CurrentOrdersModule(BaseUIModule):
 
 class Colors:
     def __init__(self):
-        self.red = (255, 0, 0)
-        self.green = (0, 255, 0)
-        self.white = (255, 255, 255)
-        self.black = (0, 0, 0)
-        self.yellow = (255, 255, 0)
-        self.darkorange = (255, 140, 0)
-        self.blue = (0, 0, 255)
+        self.red =          (255,   0,   0)
+        self.green =        (  0, 255,   0)
+        self.blue =         (  0,   0, 255) 
+        
+        self.white =        (255, 255, 255)
+        self.black =        (  0,   0,   0)
+        
+        self.yellow =       (255, 255,   0)
+        self.darkorange =   (255, 140,   0)
+        
+        self.orangered =    (255,  69,   0)
+        self.limegreen =    ( 50, 205,  50)
+        
+        self.neutralred =   (239,  83,  80)
+        self.neutralgreen = ( 38, 166, 154)
