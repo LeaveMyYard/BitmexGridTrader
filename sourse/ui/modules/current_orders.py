@@ -67,6 +67,8 @@ class CurrentOrdersModule(BaseUIModule):
             10, QtWidgets.QHeaderView.ResizeToContents
         )
 
+        self.menu = QtWidgets.QMenu()
+
         self.tabwidget = QtWidgets.QTabWidget()
         self.tabwidget.addTab(self.table, "Current orders")
         self.tabwidget.addTab(self.table_historical, "Historical orders")
@@ -77,7 +79,43 @@ class CurrentOrdersModule(BaseUIModule):
 
         self.table.setColumnHidden(10, True)
         self.table_historical.setColumnHidden(10, True)
-        
+
+        self.table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self.generateMenu)
+
+        self.table.viewport().installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if (
+            event.type() == QtCore.QEvent.MouseButtonPress
+            and event.buttons() == QtCore.Qt.RightButton
+        ):
+            self.on_right_button_clicked(event)
+            return True
+        else:
+            return False
+
+    def on_right_button_clicked(self, event):
+        item = self.table.itemAt(event.pos())
+        if item != None:
+            tmp_client_order_ID = self.table.item(item.row(), 1).text()
+
+            if item is not None and self.table.item(item.row(), 2).text() == "NEW":
+                # TODO
+                self.menu = QtWidgets.QMenu()
+                self.menu.addAction("Cancel order")
+            else:
+                try:
+                    del self.menu
+                except:
+                    pass
+
+    def generateMenu(self, pos):
+        try:
+            self.menu.exec_(self.table.mapToGlobal(pos))
+        except:
+            pass
+
     def add_order(
         self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
     ) -> str:
@@ -336,18 +374,19 @@ class CurrentOrdersModule(BaseUIModule):
 
 class Colors:
     def __init__(self):
-        self.red =          (255,   0,   0)
-        self.green =        (  0, 255,   0)
-        self.blue =         (  0,   0, 255) 
-        
-        self.white =        (255, 255, 255)
-        self.black =        (  0,   0,   0)
-        
-        self.yellow =       (255, 255,   0)
-        self.darkorange =   (255, 140,   0)
-        
-        self.orangered =    (255,  69,   0)
-        self.limegreen =    ( 50, 205,  50)
-        
-        self.neutralred =   (239,  83,  80)
-        self.neutralgreen = ( 38, 166, 154)
+        self.red = (255, 0, 0)
+        self.green = (0, 255, 0)
+        self.blue = (0, 0, 255)
+
+        self.white = (255, 255, 255)
+        self.black = (0, 0, 0)
+
+        self.yellow = (255, 255, 0)
+        self.darkorange = (255, 140, 0)
+
+        self.orangered = (255, 69, 0)
+        self.limegreen = (50, 205, 50)
+
+        self.neutralred = (239, 83, 80)
+        self.neutralgreen = (38, 166, 154)
+
