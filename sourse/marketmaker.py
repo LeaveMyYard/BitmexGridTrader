@@ -64,15 +64,18 @@ class MarketMaker(QtCore.QObject):
 
         self.pair_name = pair_name
         self.handler = handler
-        self.settings = settings
+        self.update_settings(settings)
         self.position = MarketMaker.Position()
-        self.balance = 0.0102
+        self.balance = 0.01
 
         self.logger = init_logger(self.__class__.__name__)
 
         self._current_orders: typing.Dict[str, str] = {}
         self._current_price: typing.Optional[float] = None
         self._grid_price: typing.Optional[float] = None
+
+    def update_settings(self, settings: MarketMaker.Settings):
+        self.settings = settings
 
     def _on_order_filled(self, order: AbstractExchangeHandler.OrderUpdate):
         if self.position.volume == 0:
@@ -210,9 +213,7 @@ class MarketMaker(QtCore.QObject):
 
         return orders
 
-    async def create_orders(
-        self, orders: typing.List[typing.Tuple[str, float, float]]
-    ):
+    async def create_orders(self, orders: typing.List[typing.Tuple[str, float, float]]):
         self.logger.debug("Creating grid from current price (%s)", self._current_price)
         await self.handler.create_orders(self.pair_name, orders)
 
@@ -247,26 +248,32 @@ class MarketMaker(QtCore.QObject):
 
     async def start(self):
         """Start the marketmaker bot."""
+        self._working = True
+
         self.handler.start_user_update_socket_threaded(self._on_user_update)
         self.handler.start_price_socket_threaded(self._on_price_changed, self.pair_name)
 
         await asyncio.sleep(2)
 
-        while True:
+        while self._working:
             try:
                 await MarketMaker.minute_start()
-                self.period_updated.emit()
-                if (
-                    self._grid_price is None
-                    or 100
-                    * abs(self._grid_price - self._current_price)
-                    / self._current_price
-                    >= self.settings.rebuild_after_change
-                ):
-                    await self.update_grid()
+                if self._working:
+                    self.period_updated.emit()
+                    if (
+                        self._grid_price is None
+                        or 100
+                        * abs(self._grid_price - self._current_price)
+                        / self._current_price
+                        >= self.settings.rebuild_after_change
+                    ):
+                        await self.update_grid()
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
                 print(r.__class__.__name__, e, "\n")
+
+    def stop(self):
+        self._working = False
 
 
 def main():

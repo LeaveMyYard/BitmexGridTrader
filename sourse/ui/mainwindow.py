@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import sourse.ui.modules as UiModules
 import asyncio
@@ -79,7 +81,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
     class Worker(QtCore.QThread):
-        def run(self, mainwindow):
+        def run(self, mainwindow: MainWindow):
             handler = BitmexExchangeHandler(
                 *mainwindow.current_settings.get_current_keys()
             )
@@ -96,6 +98,11 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             mainwindow.marketmaker.order_updated.connect(
                 lambda x: mainwindow._on_order_updated(x)
+            )
+            mainwindow.current_settings.settings_changed.connect(
+                lambda: mainwindow.marketmaker.update_settings(
+                    mainwindow.current_settings.get_current_settings()
+                )
             )
 
             asyncio.run_coroutine_threadsafe(
