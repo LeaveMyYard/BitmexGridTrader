@@ -60,7 +60,7 @@ class Chart(QtCore.QObject):
 
         self.graphWidget.showGrid(True, True)
 
-        self._hist: pd.DataFrame
+        self._hist: pd.DataFrame = None
         self._drawn_candles: typing.Dict[int, CandlestickItem] = {}
         self._left_candle = 0
         self._right_candle = 0
@@ -77,10 +77,7 @@ class Chart(QtCore.QObject):
 
     def draw_historical_data(self, hist_data: pd.DataFrame):
         self._hist = hist_data
-        self._hist["id"] = list(range(len(self._hist)))
-
-        for i, row in self._hist.iloc[-100:].iterrows():
-            self._draw_candle(i)
+        self._hist["id"] = list(range(-len(self._hist) + 1, 1))
 
         curr_price = self._hist.iloc[-1]["Close"]
         curr_id = self._hist.iloc[-1]["id"]
@@ -107,15 +104,17 @@ class Chart(QtCore.QObject):
             curr_id - width + 1, curr_price - height / 2, width, height
         )
 
-        self.graphWidget.sigRangeChanged.disconnect(self._on_range_changed)
+        # self.graphWidget.sigRangeChanged.disconnect(self._on_range_changed)
         self.graphWidget.setRange(rect)
-        self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
+        # self.graphWidget.sigRangeChanged.connect(self._on_range_changed)
 
     def _draw_candle(self, num: int) -> typing.Optional[CandlestickItem]:
         if num in self._drawn_candles:
             self.graphWidget.removeItem(self._drawn_candles[num])
 
         try:
+            if num in self._drawn_candles:
+                self._undraw_candle(num)
             self._drawn_candles[num] = item = CandlestickItem(self._hist.iloc[num])
         except IndexError:
             return None
@@ -137,6 +136,10 @@ class Chart(QtCore.QObject):
     @QtCore.pyqtSlot(object)
     def _on_range_changed(self, pos):
         rect: QtCore.QRectF = pos.viewRect()
+        rect.adjust(-5, 0, 10, 0)
+
+        if self._hist is None:
+            return
 
         if rect.width() > 1500:
             if self.__prev_rect.width() > 1500:
@@ -149,11 +152,11 @@ class Chart(QtCore.QObject):
         x = int(rect.x())
 
         if x < self._left_candle:
-            for i in range(x, self._left_candle + 1):
+            for i in range(x - 2, self._left_candle + 1):
                 self._draw_candle(i)
                 self._left_candle = min(self._left_candle, i)
         elif x > self._left_candle:
-            for i in range(self._left_candle + 1, x + 1):
+            for i in range(self._left_candle, x - 1):
                 self._undraw_candle(i)
                 self._left_candle = max(self._left_candle, i)
 
@@ -164,7 +167,7 @@ class Chart(QtCore.QObject):
                 self._draw_candle(i)
                 self._right_candle = max(self._right_candle, i)
         elif x < self._right_candle:
-            for i in range(x + 1, self._right_candle + 1):
+            for i in range(x, self._right_candle + 1):
                 self._undraw_candle(i)
                 self._right_candle = min(self._right_candle, i)
 

@@ -66,11 +66,13 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         self.current_orders.rebuild_grid.connect(self._on_client_rebuilds_grid)
 
+        self.data_module = UiModules.DataModule(self.top_left_dockwidget)
+
         self.handle = BitmexExchangeHandler(*self.current_settings.get_current_keys())
         self.chart = UiModules.Chart(self)
 
         data_loading = asyncio.run_coroutine_threadsafe(
-            self.handle.load_historical_data("XBTUSD", "1m", 500),
+            self.handle.load_historical_data("XBTUSD", "1m", 1000),
             self.asyncio_event_loop,
         )
 

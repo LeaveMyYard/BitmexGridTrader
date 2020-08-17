@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from sourse.marketmaker import MarketMaker
 import typing
 import json
@@ -32,7 +32,7 @@ class CurrentSettingsModule(BaseUIModule):
 
     def __init__(
         self,
-        parent,
+        parent: QtWidgets.QDockWidget,
         marketmaker_finished_predicate: typing.Callable[[], typing.Tuple[bool, bool]],
     ):
         self._setting_widgets: typing.Dict[str, QtWidgets.QWidget] = {}
@@ -42,6 +42,23 @@ class CurrentSettingsModule(BaseUIModule):
         }
         self._marketmaker_finished_predicate = marketmaker_finished_predicate
         super().__init__(parent)
+        self.base_widget.installEventFilter(self)
+
+    def eventFilter(self, sourse, event):
+        if isinstance(event, QtGui.QResizeEvent):
+            if event.size().height() <= 1080:
+                self.hide_labels()
+            else:
+                self.show_labels()
+        return True
+
+    def hide_labels(self):
+        for label in self._settings_descriptions:
+            label.setVisible(False)
+
+    def show_labels(self):
+        for label in self._settings_descriptions:
+            label.setVisible(True)
 
     @staticmethod
     def _get_settings_description() -> typing.Dict[str, InputFormat]:
@@ -86,6 +103,8 @@ class CurrentSettingsModule(BaseUIModule):
         self.layout = QtWidgets.QVBoxLayout(self.base_widget)
         self.parent_widget.setWindowTitle("Current Settings")
         self.base_widget.setLayout(self.layout)
+
+        self._settings_descriptions: typing.List[QtWidgets.QLabel] = []
 
         self.layout.addWidget(self._create_keys_groupbox())
         self.layout.addWidget(self._create_algorithm_groupbox())
@@ -224,6 +243,7 @@ class CurrentSettingsModule(BaseUIModule):
             comment = QtWidgets.QLabel(f"<i>{value.desc}</i><br>")
             comment.setTextFormat(QtCore.Qt.RichText)
             comment.setWordWrap(True)
+            self._settings_descriptions.append(comment)
 
             vlayout = QtWidgets.QVBoxLayout()
             vlayout.addWidget(widget)
