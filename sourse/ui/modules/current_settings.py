@@ -27,12 +27,20 @@ class CurrentSettingsModule(BaseUIModule):
     start_button_pressed = QtCore.pyqtSignal()
     stop_button_pressed = QtCore.pyqtSignal()
 
-    def __init__(self, parent):
+    cancel_all_orders = QtCore.pyqtSignal()
+    fill_position = QtCore.pyqtSignal()
+
+    def __init__(
+        self,
+        parent,
+        marketmaker_finished_predicate: typing.Callable[[], typing.Tuple[bool, bool]],
+    ):
         self._setting_widgets: typing.Dict[str, QtWidgets.QWidget] = {}
         self._keys_widgets: typing.Dict[str, typing.Optional[QtWidgets.QtWidget]] = {
             "private": None,
             "public": None,
         }
+        self._marketmaker_finished_predicate = marketmaker_finished_predicate
         super().__init__(parent)
 
     @staticmethod
@@ -97,9 +105,70 @@ class CurrentSettingsModule(BaseUIModule):
             nonlocal running
 
             if running:
+                (
+                    position_filled,
+                    orders_canceled,
+                ) = self._marketmaker_finished_predicate()
+
+                if not position_filled or not orders_canceled:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setIcon(QtWidgets.QMessageBox.Question)
+                    msg.setWindowTitle("The bot is unfinished")
+                    msg.setText("The bot work in unfinished, choose what to do")
+                    stop_button = msg.addButton(
+                        "Just stop", QtWidgets.QMessageBox.AcceptRole
+                    )
+
+                    cancel_orders = None
+                    fill_position = None
+                    both_actions = None
+
+                    if not position_filled and not orders_canceled:
+                        msg.setInformativeText(
+                            f"Right now it seems that there are some opened orders and unrealised position."
+                        )
+                        cancel_orders = msg.addButton(
+                            "Cancel orders", QtWidgets.QMessageBox.AcceptRole,
+                        )
+                        fill_position = msg.addButton(
+                            "Fill position", QtWidgets.QMessageBox.AcceptRole,
+                        )
+                        both_actions = msg.addButton(
+                            "Do both", QtWidgets.QMessageBox.AcceptRole,
+                        )
+
+                    elif not position_filled:
+                        msg.setInformativeText(
+                            f"Right now it seems that there is unrealised position."
+                        )
+                        fill_position = msg.addButton(
+                            "Fill position", QtWidgets.QMessageBox.AcceptRole,
+                        )
+                    elif not orders_canceled:
+                        msg.setInformativeText(
+                            f"Right now it seems that there are some opened orders."
+                        )
+                        cancel_orders = msg.addButton(
+                            "Cancel orders", QtWidgets.QMessageBox.AcceptRole,
+                        )
+
+                    cancel_button = msg.addButton(
+                        "Cancel", QtWidgets.QMessageBox.RejectRole
+                    )
+                    msg.exec()
+
+                    if msg.clickedButton() == cancel_button:
+                        return
+                    elif msg.clickedButton() == cancel_orders:
+                        self.cancel_all_orders.emit()
+                    elif msg.clickedButton() == fill_position:
+                        self.fill_position.emit()
+                    elif msg.clickedButton() == both_actions:
+                        self.cancel_all_orders.emit()
+                        self.fill_position.emit()
+
                 button.setText("Start bot")
                 self.stop_button_pressed.emit()
-                return  # TODO
             else:
                 button.setText("Stop bot")
                 self.start_button_pressed.emit()

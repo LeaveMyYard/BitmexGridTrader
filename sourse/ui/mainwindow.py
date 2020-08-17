@@ -31,7 +31,9 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QDockWidget, "dockWidget_5"
         )
 
-        self.current_settings = UiModules.CurrentSettingsModule(self.right_dockwidget)
+        self.current_settings = UiModules.CurrentSettingsModule(
+            self.right_dockwidget, self.is_marketmaker_finished
+        )
 
         self.setting_templates = UiModules.SettingTemplatesModule(
             self.bottom_left_dockwidget
@@ -42,6 +44,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 name, settings
             )
         )
+
+        # current_settings signals
         self.current_settings.templates_updated.connect(
             self.setting_templates.refresh_templates
         )
@@ -49,7 +53,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setting_templates.reset_load_buttons
         )
         self.current_settings.start_button_pressed.connect(self.start)
+        self.current_settings.cancel_all_orders.connect(
+            self._on_client_cancels_all_orders
+        )
+        self.current_settings.fill_position.connect(self._on_client_fills_position)
 
+        # current_orders signals
         self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
         self.current_orders.order_canceled.connect(self._on_client_cancels_order)
         self.current_orders.all_orders_canceled.connect(
@@ -109,6 +118,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 mainwindow.marketmaker.start(), mainwindow.asyncio_event_loop
             )
 
+    def is_marketmaker_finished(self) -> typing.Tuple[bool, bool]:
+        """is_marketmaker_finished [summary]
+
+        Returns:
+            typing.Tuple[bool, bool]: is_position_filled, are_orders_canceled
+        """
+
+        if self.marketmaker is None:
+            raise ValueError("No marketmaker defined")
+
+        position_filled = self.marketmaker.get_current_position_data().volume == 0
+        orders_canceled = self.marketmaker.get_current_orders_count() == 0
+
+        return position_filled, orders_canceled
+
     @QtCore.pyqtSlot()
     def start(self):
         self.worker_thread = self.Worker()
@@ -152,6 +176,14 @@ class MainWindow(QtWidgets.QMainWindow):
             asyncio.run_coroutine_threadsafe(
                 self.marketmaker.cancel_orders(), self.asyncio_event_loop
             )
+
+    @QtCore.pyqtSlot()
+    def _on_client_fills_position(self):
+        if self.marketmaker is not None:
+            print("Position fill")  # TODO
+            # asyncio.run_coroutine_threadsafe(
+            #     self.marketmaker.cancel_orders(), self.asyncio_event_loop
+            # )
 
     @QtCore.pyqtSlot()
     def _on_client_rebuilds_grid(self):

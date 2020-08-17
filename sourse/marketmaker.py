@@ -213,6 +213,12 @@ class MarketMaker(QtCore.QObject):
 
         return orders
 
+    def get_current_position_data(self) -> MarketMaker.Position:
+        return self.position
+
+    def get_current_orders_count(self) -> int:
+        return len(self._current_orders)
+
     async def create_orders(self, orders: typing.List[typing.Tuple[str, float, float]]):
         self.logger.debug("Creating grid from current price (%s)", self._current_price)
         await self.handler.create_orders(self.pair_name, orders)
