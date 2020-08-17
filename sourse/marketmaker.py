@@ -20,6 +20,8 @@ class MarketMaker(QtCore.QObject):
     candle_appeared = QtCore.pyqtSignal(object)
     grid_updates = QtCore.pyqtSignal(object)
     order_updated = QtCore.pyqtSignal(object)
+    position_updated = QtCore.pyqtSignal(object)
+    balance_updated = QtCore.pyqtSignal(float)
 
     @dataclass
     class Settings:
@@ -105,6 +107,9 @@ class MarketMaker(QtCore.QObject):
             self.position.price = order.average_price
 
         self.balance -= order.fee
+
+        self.position_updated.emit(self.position)
+        self.balance_updated.emit(self.balance)
 
     def _on_user_update(self, data: AbstractExchangeHandler.UserUpdate):
         if isinstance(data, AbstractExchangeHandler.OrderUpdate):

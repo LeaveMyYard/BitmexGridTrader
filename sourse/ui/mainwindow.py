@@ -115,6 +115,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     mainwindow.current_settings.get_current_settings()
                 )
             )
+            mainwindow.marketmaker.position_updated.connect(
+                lambda x: mainwindow.data_module.update_position(x)
+            )
 
             asyncio.run_coroutine_threadsafe(
                 mainwindow.marketmaker.start(), mainwindow.asyncio_event_loop

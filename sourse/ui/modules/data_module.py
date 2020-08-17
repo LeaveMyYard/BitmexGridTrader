@@ -1,4 +1,5 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
+from sourse.marketmaker import MarketMaker
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -26,10 +27,15 @@ class DataModule(BaseUIModule):
         vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
         vbox_contracts.addWidget(vol_label_desc)
 
-        self.price_label = QtWidgets.QLabel("0.0")
+        self.price_label = QtWidgets.QLabel("-")
         self.price_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox_price.addWidget(self.price_label)
 
         price_label_desc = QtWidgets.QLabel("Average price")
         vbox_price.addWidget(price_label_desc)
         price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+
+    @QtCore.pyqtSlot(object)
+    def update_position(self, position: MarketMaker.Position):
+        self.price_label.setText(str(position.price))
+        self.volume_label.setText(str(position.volume))
