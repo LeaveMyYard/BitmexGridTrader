@@ -210,18 +210,21 @@ class MarketMaker(QtCore.QObject):
 
         return orders
 
-    async def _create_orders(
+    async def create_orders(
         self, orders: typing.List[typing.Tuple[str, float, float]]
     ):
         self.logger.debug("Creating grid from current price (%s)", self._current_price)
         await self.handler.create_orders(self.pair_name, orders)
 
-    async def _cancel_orders(self):
+    async def cancel_orders(self):
         if len(self._current_orders) > 0:
             await self.handler.cancel_orders(list(self._current_orders.keys()))
 
-    async def _update_grid(self):
-        await self._cancel_orders()
+    async def cancel_order(self, client_orderID: str):
+        await self.handler.cancel_order(client_orderID=client_orderID)
+
+    async def update_grid(self):
+        await self.cancel_orders()
         orders = self._generate_orders()
         self.grid_updates.emit(orders)
         for order in orders:
@@ -240,7 +243,7 @@ class MarketMaker(QtCore.QObject):
             )
 
             self.order_updated.emit(order_update)
-        await self._create_orders(orders)
+        await self.create_orders(orders)
 
     async def start(self):
         """Start the marketmaker bot."""
@@ -260,7 +263,7 @@ class MarketMaker(QtCore.QObject):
                     / self._current_price
                     >= self.settings.rebuild_after_change
                 ):
-                    await self._update_grid()
+                    await self.update_grid()
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
                 print(r.__class__.__name__, e, "\n")

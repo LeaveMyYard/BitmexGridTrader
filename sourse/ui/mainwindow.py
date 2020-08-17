@@ -49,6 +49,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_settings.start_button_pressed.connect(self.start)
 
         self.current_orders = UiModules.CurrentOrdersModule(self.bottom_dockwidget)
+        self.current_orders.order_canceled.connect(self._on_client_cancels_order)
+        self.current_orders.all_orders_canceled.connect(
+            self._on_client_cancels_all_orders
+        )
+        self.current_orders.rebuild_grid.connect(self._on_client_rebuilds_grid)
 
         self.handle = BitmexExchangeHandler(*self.current_settings.get_current_keys())
         self.chart = UiModules.Chart(self)
@@ -126,3 +131,24 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def _on_order_updated(self, data: BitmexExchangeHandler.OrderUpdate):
         self.current_orders.add_order(data)
+
+    @QtCore.pyqtSlot(str)
+    def _on_client_cancels_order(self, client_orderID: str):
+        if self.marketmaker is not None:
+            asyncio.run_coroutine_threadsafe(
+                self.marketmaker.cancel_order(client_orderID), self.asyncio_event_loop
+            )
+
+    @QtCore.pyqtSlot()
+    def _on_client_cancels_all_orders(self):
+        if self.marketmaker is not None:
+            asyncio.run_coroutine_threadsafe(
+                self.marketmaker.cancel_orders(), self.asyncio_event_loop
+            )
+
+    @QtCore.pyqtSlot()
+    def _on_client_rebuilds_grid(self):
+        if self.marketmaker is not None:
+            asyncio.run_coroutine_threadsafe(
+                self.marketmaker.update_grid(), self.asyncio_event_loop
+            )

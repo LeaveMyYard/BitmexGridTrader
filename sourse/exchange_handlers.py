@@ -230,7 +230,11 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         ...
 
     @abc.abstractmethod
-    async def cancel_order(self, order_id: int) -> None:
+    async def cancel_order(
+        self,
+        order_id: typing.Optional[str] = None,
+        client_orderID: typing.Optional[str] = None,
+    ) -> None:
         ...
 
     @abc.abstractmethod
@@ -600,8 +604,19 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
             for result in results
         ]
 
-    async def cancel_order(self, order_id: int) -> None:
-        self._client.Order.Order_cancel(orderID=order_id).result()
+    async def cancel_order(
+        self,
+        order_id: typing.Optional[str] = None,
+        client_orderID: typing.Optional[str] = None,
+    ) -> None:
+        if order_id is not None:
+            self._client.Order.Order_cancel(orderID=order_id).result()
+        elif client_orderID is not None:
+            self._client.Order.Order_cancel(clOrdID=client_orderID).result()
+        else:
+            raise ValueError(
+                "Either order_id of client_orderID should be sent, but both are None"
+            )
 
     async def cancel_orders(self, orders: typing.List[int]) -> None:
         self._client.Order.Order_cancel(orderID=json.dumps(orders)).result()

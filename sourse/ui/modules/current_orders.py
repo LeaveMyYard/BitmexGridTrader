@@ -7,6 +7,10 @@ import numpy as np
 
 
 class CurrentOrdersModule(BaseUIModule):
+    order_canceled = QtCore.pyqtSignal(str)
+    all_orders_canceled = QtCore.pyqtSignal()
+    rebuild_grid = QtCore.pyqtSignal()
+
     def _create_widgets(self):
         """
         
@@ -90,25 +94,26 @@ class CurrentOrdersModule(BaseUIModule):
             event.type() == QtCore.QEvent.MouseButtonPress
             and event.buttons() == QtCore.Qt.RightButton
         ):
-            self.on_right_button_clicked(event)
+            self._on_right_button_clicked(event)
             return True
         else:
             return False
 
-    def on_right_button_clicked(self, event):
-        item = self.table.itemAt(event.pos())
-        if item != None:
-            tmp_client_order_ID = self.table.item(item.row(), 1).text()
+    def _on_right_button_clicked(self, event):
+        self.menu = QtWidgets.QMenu()
 
-            if item is not None and self.table.item(item.row(), 2).text() == "NEW":
-                # TODO
-                self.menu = QtWidgets.QMenu()
-                self.menu.addAction("Cancel order")
-            else:
-                try:
-                    del self.menu
-                except:
-                    pass
+        item = self.table.itemAt(event.pos())
+        if item is not None:
+            if self.table.item(item.row(), 2).text() == "NEW":
+                client_order_ID = self.table.item(item.row(), 1).text()
+                self.menu.addAction(
+                    "Cancel order", lambda: self.order_canceled.emit(client_order_ID),
+                )
+
+        self.menu.addAction(
+            "Cancel all orders", lambda: self.all_orders_canceled.emit()
+        )
+        self.menu.addAction("Rebuild grid", lambda: self.rebuild_grid.emit())
 
     def generateMenu(self, pos):
         try:
@@ -390,3 +395,23 @@ class Colors:
         self.neutralred = (239, 83, 80)
         self.neutralgreen = (38, 166, 154)
 
+
+class BetterColors:  # TODO Replace Colors usage with BetterColors
+    red = (255, 0, 0)
+    green = (0, 255, 0)
+    blue = (0, 0, 255)
+
+    white = (255, 255, 255)
+    black = (0, 0, 0)
+
+    yellow = (255, 255, 0)
+    darkorange = (255, 140, 0)
+
+    orangered = (255, 69, 0)
+    limegreen = (50, 205, 50)
+
+    neutralred = (239, 83, 80)
+    neutralgreen = (38, 166, 154)
+
+    def __init__(self):
+        raise RuntimeError("Can not create an instance of a static Colors class")
