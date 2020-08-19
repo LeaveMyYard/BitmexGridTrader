@@ -99,8 +99,8 @@ class MarketMaker(QtCore.QObject):
         ):
             print("Case 2", order.volume, order.average_price, self.position)
             self.position.price = (self.position.volume + order.volume) / (
-                order.average_price / order.volume
-                + self.position.price / self.position.volume
+                order.volume / order.average_price
+                + self.position.volume / self.position.price
             )
             self.position.volume += order.volume
             print("Case 2", order.volume, order.average_price, self.position)
