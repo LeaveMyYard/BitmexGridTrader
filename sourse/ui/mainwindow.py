@@ -213,13 +213,15 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.handle.create_market_order(
                         "XBTUSD",
                         "Sell" if position.volume > 0 else "Buy",
-                        position.volume,
+                        abs(position.volume),
                     ),
                     self.asyncio_event_loop,
                 ).result()
             except Exception as error:
                 messagebox = QtWidgets.QMessageBox()
-                messagebox.setText(f"An error occured in a marketmaker worker.")
+                messagebox.setText(
+                    f"An error occured while trying to close the position."
+                )
                 messagebox.setInformativeText(f"[{error.__class__.__name__}] {error}")
                 messagebox.setDetailedText(
                     "\n".join(traceback.format_tb(error.__traceback__))
