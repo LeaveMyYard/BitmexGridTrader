@@ -16,7 +16,7 @@ from PyQt5 import QtCore
 class MarketMaker(QtCore.QObject):
     """This class encapsulates a handler and starts a marketmaking bot."""
 
-    period_updated = QtCore.pyqtSignal()
+    period_updated = QtCore.pyqtSignal(object)
     candle_appeared = QtCore.pyqtSignal(object)
     grid_updates = QtCore.pyqtSignal(object)
     order_updated = QtCore.pyqtSignal(object)
@@ -284,7 +284,6 @@ class MarketMaker(QtCore.QObject):
                     )
 
                 if self._working:
-                    self.period_updated.emit()
                     if (
                         self._grid_price is None
                         or 100
@@ -293,8 +292,7 @@ class MarketMaker(QtCore.QObject):
                         >= self.settings.rebuild_after_change
                     ):
                         await self.update_grid()
-                    else:
-                        self.grid_updates.emit(self.__current_grid_orders)
+                    self.period_updated.emit(self.__current_grid_orders)
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
                 print(e.__class__.__name__, e, "\n")

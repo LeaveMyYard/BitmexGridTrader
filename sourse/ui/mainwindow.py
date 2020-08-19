@@ -104,7 +104,9 @@ class MainWindow(QtWidgets.QMainWindow):
             mainwindow.marketmaker.candle_appeared.connect(
                 lambda x: mainwindow._on_kline_event_appeared(x)
             )
-
+            mainwindow.marketmaker.period_updated.connect(
+                lambda x: mainwindow._on_period_updates(x)
+            )
             mainwindow.marketmaker.grid_updates.connect(
                 lambda x: mainwindow._on_grid_updates(x)
             )
@@ -167,16 +169,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chart.add_candle(candle_dict)
 
     @QtCore.pyqtSlot()
+    def _on_period_updates(
+        self, current_orders: typing.List[typing.Tuple[str, float, float, str]]
+    ):
+        self.chart.add_grid(
+            [p for d, p, _, _ in current_orders if d == "Buy"],
+            [p for d, p, _, _ in current_orders if d == "Sell"],
+        )
+
+    @QtCore.pyqtSlot(object)
     def _on_grid_updates(
         self, orders: typing.List[typing.Tuple[str, float, float, str]]
     ):
         self.current_orders.remove_all_orders()
-        self.chart.add_grid(
-            [p for d, p, _, _ in orders if d == "Buy"],
-            [p for d, p, _, _ in orders if d == "Sell"],
-        )
 
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot(object)
     def _on_order_updated(self, data: BitmexExchangeHandler.OrderUpdate):
         self.current_orders.add_order(data)
 
