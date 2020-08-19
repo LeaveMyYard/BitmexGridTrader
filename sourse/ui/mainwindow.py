@@ -3,6 +3,7 @@ from __future__ import annotations
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import sourse.ui.modules as UiModules
 import asyncio
+import traceback
 import pandas as pd
 import threading
 from sourse.marketmaker import MarketMaker
@@ -110,6 +111,9 @@ class MainWindow(QtWidgets.QMainWindow):
             mainwindow.marketmaker.order_updated.connect(
                 lambda x: mainwindow._on_order_updated(x)
             )
+            mainwindow.marketmaker.error_occured.connect(
+                lambda x: mainwindow._on_error_occured(x)
+            )
 
             mainwindow.current_settings.settings_changed.connect(
                 lambda: mainwindow.marketmaker.update_settings(
@@ -204,3 +208,13 @@ class MainWindow(QtWidgets.QMainWindow):
             asyncio.run_coroutine_threadsafe(
                 self.marketmaker.update_grid(), self.asyncio_event_loop
             )
+
+    @QtCore.pyqtSlot(object)
+    def _on_error_occured(self, error: Exception):
+        messagebox = QtWidgets.QMessageBox()
+        messagebox.setText(f"An error occured in a marketmaker worker.")
+        messagebox.setInformativeText(f"[{error.__class__.__name__}] {error}")
+        messagebox.setDetailedText("\n".join(traceback.format_tb(error.__traceback__)))
+        messagebox.setIcon(QtWidgets.QMessageBox.Warning)
+        messagebox.exec()
+

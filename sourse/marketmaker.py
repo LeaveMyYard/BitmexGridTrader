@@ -23,6 +23,7 @@ class MarketMaker(QtCore.QObject):
     position_updated = QtCore.pyqtSignal(object)
     price_updated = QtCore.pyqtSignal(float)
     balance_updated = QtCore.pyqtSignal(float)
+    error_occured = QtCore.pyqtSignal(object)
 
     @dataclass
     class Settings:
@@ -149,6 +150,7 @@ class MarketMaker(QtCore.QObject):
 
         elif isinstance(data, AbstractExchangeHandler.BalanceUpdate):
             self.balance = data.balance
+            self.balance_updated.emit(self.balance)
             self.logger.debug("Updated balance from server: %s", self.balance)
 
     def _on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
@@ -277,7 +279,9 @@ class MarketMaker(QtCore.QObject):
                     raise RuntimeError(
                         f"The bot has started, but the price is still not loaded"
                     )
-                    
+
+                raise RuntimeError("This is just a test")
+
                 if self._working:
                     self.period_updated.emit()
                     if (
@@ -291,6 +295,7 @@ class MarketMaker(QtCore.QObject):
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
                 print(e.__class__.__name__, e, "\n")
+                self.error_occured.emit(e)
 
     def stop(self):
         self._working = False
