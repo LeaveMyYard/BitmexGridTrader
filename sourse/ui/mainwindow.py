@@ -218,3 +218,7 @@ class MainWindow(QtWidgets.QMainWindow):
         messagebox.setIcon(QtWidgets.QMessageBox.Warning)
         messagebox.exec()
 
+    def closeEvent(self, event):
+        self.current_settings.check_bot_finish_actions()
+        return super().closeEvent(event)
+
