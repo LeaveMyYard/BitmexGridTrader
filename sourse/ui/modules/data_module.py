@@ -117,13 +117,17 @@ class DataModule(BaseUIModule):
     @QtCore.pyqtSlot(object)
     def update_position(self, position: MarketMaker.Position):
         self._current_position_data = position
-        self.price_label.setText(str(position.price))
+        self.price_label.setText(
+            str(position.price) if position.price is not None else "-"
+        )
         self.volume_label.setText(str(position.volume))
 
     @QtCore.pyqtSlot(object)
     def update_position_server(self, position: MarketMaker.Position):
         # self._current_position_data = position
-        self.price_label_server.setText(str(position.price))
+        self.price_label_server.setText(
+            str(position.price) if position.price is not None else "-"
+        )
         self.volume_label_server.setText(str(position.volume))
 
     @QtCore.pyqtSlot(float)
