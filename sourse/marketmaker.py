@@ -21,6 +21,7 @@ class MarketMaker(QtCore.QObject):
     grid_updates = QtCore.pyqtSignal(object)
     order_updated = QtCore.pyqtSignal(object)
     position_updated = QtCore.pyqtSignal(object)
+    price_updated = QtCore.pyqtSignal(float)
     balance_updated = QtCore.pyqtSignal(float)
 
     @dataclass
@@ -152,6 +153,7 @@ class MarketMaker(QtCore.QObject):
 
     def _on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
         self._current_price = data.price
+        self.price_updated.emit(self._current_price)
 
     @staticmethod
     def __convert_order_data(
@@ -224,7 +226,9 @@ class MarketMaker(QtCore.QObject):
     def get_current_orders_count(self) -> int:
         return len(self._current_orders)
 
-    async def create_orders(self, orders: typing.List[typing.Tuple[str, float, float]]):
+    async def create_orders(
+        self, orders: typing.List[typing.Tuple[str, float, float, str]]
+    ):
         self.logger.debug("Creating grid from current price (%s)", self._current_price)
         await self.handler.create_orders(self.pair_name, orders)
 
@@ -269,6 +273,11 @@ class MarketMaker(QtCore.QObject):
         while self._working:
             try:
                 await MarketMaker.minute_start()
+                if self._current_price is None:
+                    raise RuntimeError(
+                        f"The bot has started, but the price is still not loaded"
+                    )
+                    
                 if self._working:
                     self.period_updated.emit()
                     if (
@@ -281,7 +290,7 @@ class MarketMaker(QtCore.QObject):
                         await self.update_grid()
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
-                print(r.__class__.__name__, e, "\n")
+                print(e.__class__.__name__, e, "\n")
 
     def stop(self):
         self._working = False

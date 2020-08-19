@@ -110,13 +110,21 @@ class MainWindow(QtWidgets.QMainWindow):
             mainwindow.marketmaker.order_updated.connect(
                 lambda x: mainwindow._on_order_updated(x)
             )
+
             mainwindow.current_settings.settings_changed.connect(
                 lambda: mainwindow.marketmaker.update_settings(
                     mainwindow.current_settings.get_current_settings()
                 )
             )
+
             mainwindow.marketmaker.position_updated.connect(
                 lambda x: mainwindow.data_module.update_position(x)
+            )
+            mainwindow.marketmaker.price_updated.connect(
+                lambda x: mainwindow.data_module.update_price(x)
+            )
+            mainwindow.marketmaker.balance_updated.connect(
+                lambda x: mainwindow.data_module.update_balance(x)
             )
 
             asyncio.run_coroutine_threadsafe(
