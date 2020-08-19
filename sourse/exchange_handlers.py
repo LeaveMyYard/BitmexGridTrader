@@ -89,7 +89,7 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
     class BalanceUpdate:
         balance: float
 
-    UserUpdate = typing.Union[OrderUpdate, PositionUpdate]
+    UserUpdate = typing.Union[OrderUpdate, PositionUpdate, BalanceUpdate]
 
     @abc.abstractmethod
     def start_user_update_socket(
@@ -215,11 +215,26 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
         self,
         symbol: str,
         side: str,
-        price: float,
+        price: typing.Optional[float],
         volume: float,
         client_ordID: typing.Optional[str] = None,
     ) -> AbstractExchangeHandler.NewOrderData:
         ...
+
+    async def create_market_order(
+        self,
+        symbol: str,
+        side: str,
+        volume: float,
+        client_ordID: typing.Optional[str] = None,
+    ) -> AbstractExchangeHandler.NewOrderData:
+        return await self.create_order(
+            symbol=symbol,
+            side=side,
+            price=None,
+            volume=volume,
+            client_ordID=client_ordID,
+        )
 
     @abc.abstractmethod
     async def create_orders(
@@ -540,29 +555,48 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
         self,
         symbol: str,
         side: str,
-        price: float,
+        price: typing.Optional[float],
         volume: float,
         client_ordID: typing.Optional[str] = None,
     ) -> AbstractExchangeHandler.NewOrderData:
         if client_ordID is None:
-            result = self._client.Order.Order_new(
-                symbol=symbol,
-                side=side,
-                orderQty=volume,
-                price=price,
-                ordType="Limit",
-                execInst="ParticipateDoNotInitiate",
-            ).result()[0]
+            if price is not None:
+                result = self._client.Order.Order_new(
+                    symbol=symbol,
+                    side=side,
+                    orderQty=volume,
+                    price=price,
+                    ordType="Limit",
+                    execInst="ParticipateDoNotInitiate",
+                ).result()[0]
+            else:
+                result = self._client.Order.Order_new(
+                    symbol=symbol,
+                    side=side,
+                    orderQty=volume,
+                    ordType="Market",
+                    execInst="ParticipateDoNotInitiate",
+                ).result()[0]
         else:
-            result = self._client.Order.Order_new(
-                clOrdID=client_ordID,
-                symbol=symbol,
-                side=side,
-                orderQty=volume,
-                price=price,
-                ordType="Limit",
-                execInst="ParticipateDoNotInitiate",
-            ).result()[0]
+            if price is not None:
+                result = self._client.Order.Order_new(
+                    clOrdID=client_ordID,
+                    symbol=symbol,
+                    side=side,
+                    orderQty=volume,
+                    price=price,
+                    ordType="Limit",
+                    execInst="ParticipateDoNotInitiate",
+                ).result()[0]
+            else:
+                result = self._client.Order.Order_new(
+                    clOrdID=client_ordID,
+                    symbol=symbol,
+                    side=side,
+                    price=price,
+                    ordType="Market",
+                    execInst="ParticipateDoNotInitiate",
+                ).result()[0]
 
         return AbstractExchangeHandler.NewOrderData(
             orderID=result["orderID"], client_orderID=result["clOrdID"]

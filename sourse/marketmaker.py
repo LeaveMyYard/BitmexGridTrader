@@ -77,6 +77,9 @@ class MarketMaker(QtCore.QObject):
         self._current_orders: typing.Dict[str, str] = {}
         self._current_price: typing.Optional[float] = None
         self._grid_price: typing.Optional[float] = None
+        self.__current_grid_orders: typing.List[
+            typing.Tuple[str, float, float, str]
+        ] = []
 
     def update_settings(self, settings: MarketMaker.Settings):
         self.settings = settings
@@ -243,7 +246,7 @@ class MarketMaker(QtCore.QObject):
 
     async def update_grid(self):
         await self.cancel_orders()
-        orders = self._generate_orders()
+        orders = self.__current_grid_orders = self._generate_orders()
         self.grid_updates.emit(orders)
         for order in orders:
             order_update = AbstractExchangeHandler.OrderUpdate(
@@ -280,8 +283,6 @@ class MarketMaker(QtCore.QObject):
                         f"The bot has started, but the price is still not loaded"
                     )
 
-                raise RuntimeError("This is just a test")
-
                 if self._working:
                     self.period_updated.emit()
                     if (
@@ -292,6 +293,8 @@ class MarketMaker(QtCore.QObject):
                         >= self.settings.rebuild_after_change
                     ):
                         await self.update_grid()
+                    else:
+                        self.grid_updates.emit(self.__current_grid_orders)
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
                 print(e.__class__.__name__, e, "\n")

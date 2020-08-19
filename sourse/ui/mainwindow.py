@@ -143,7 +143,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
 
         if self.marketmaker is None:
-            raise ValueError("No marketmaker defined")
+            return True, True
 
         position_filled = self.marketmaker.get_current_position_data().volume == 0
         orders_canceled = self.marketmaker.get_current_orders_count() == 0
@@ -197,10 +197,25 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def _on_client_fills_position(self):
         if self.marketmaker is not None:
-            print("Position fill")  # TODO
-            # asyncio.run_coroutine_threadsafe(
-            #     self.marketmaker.cancel_orders(), self.asyncio_event_loop
-            # )
+            position = self.marketmaker.get_current_position_data()
+            try:
+                asyncio.run_coroutine_threadsafe(
+                    self.handle.create_market_order(
+                        "XBTUSD",
+                        "Sell" if position.volume > 0 else "Buy",
+                        position.volume,
+                    ),
+                    self.asyncio_event_loop,
+                ).result()
+            except Exception as error:
+                messagebox = QtWidgets.QMessageBox()
+                messagebox.setText(f"An error occured in a marketmaker worker.")
+                messagebox.setInformativeText(f"[{error.__class__.__name__}] {error}")
+                messagebox.setDetailedText(
+                    "\n".join(traceback.format_tb(error.__traceback__))
+                )
+                messagebox.setIcon(QtWidgets.QMessageBox.Critical)
+                messagebox.exec()
 
     @QtCore.pyqtSlot()
     def _on_client_rebuilds_grid(self):

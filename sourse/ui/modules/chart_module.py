@@ -115,7 +115,9 @@ class Chart(QtCore.QObject):
         try:
             if num in self._drawn_candles:
                 self._undraw_candle(num)
-            self._drawn_candles[num] = item = CandlestickItem(self._hist.iloc[num])
+            self._drawn_candles[num] = item = CandlestickItem(
+                self._hist.loc[self._hist["id"] == num].iloc[-1]
+            )
         except IndexError:
             return None
 
