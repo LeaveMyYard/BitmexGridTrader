@@ -87,38 +87,30 @@ class MarketMaker(QtCore.QObject):
 
     def _on_order_filled(self, order: AbstractExchangeHandler.OrderUpdate):
         if self.position.volume == 0:
-            print("Case 1", order.volume, order.average_price, self.position)
             self.position.volume = order.volume
             self.position.price = order.average_price
-            print("Case 1", order.volume, order.average_price, self.position)
         elif (
             self.position.volume < 0
             and order.volume < 0
             or self.position.volume > 0
             and order.volume > 0
         ):
-            print("Case 2", order.volume, order.average_price, self.position)
             self.position.price = (self.position.volume + order.volume) / (
                 order.volume / order.average_price
                 + self.position.volume / self.position.price
             )
             self.position.volume += order.volume
-            print("Case 2", order.volume, order.average_price, self.position)
         elif abs(self.position.volume) >= abs(order.volume):
-            print("Case 3", order.volume, order.average_price, self.position)
             self.position.volume += order.volume
             self.balance += order.volume * (
                 -1 / self.position.price + 1 / order.average_price
             )
-            print("Case 3", order.volume, order.average_price, self.position)
         else:
-            print("Case 4", order.volume, order.average_price, self.position)
             self.balance += self.position.volume * (
                 1 / self.position.price - 1 / order.average_price
             )
             self.position.volume += order.volume
             self.position.price = order.average_price
-            print("Case 4", order.volume, order.average_price, self.position)
 
         self.balance -= order.fee
 
@@ -158,6 +150,7 @@ class MarketMaker(QtCore.QObject):
             if (
                 data.size != self.position.volume
                 or data.entry_price != self.position.price
+                and data.size == self.position.volume == 0
             ):
                 self.logger.warning(
                     "Position, got from server differes with the calculated one: (%s; %s) vs (%s; %s)",
