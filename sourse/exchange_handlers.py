@@ -571,11 +571,7 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
                 ).result()[0]
             else:
                 result = self._client.Order.Order_new(
-                    symbol=symbol,
-                    side=side,
-                    orderQty=volume,
-                    ordType="Market",
-                    execInst="ParticipateDoNotInitiate",
+                    symbol=symbol, side=side, orderQty=volume, ordType="Market",
                 ).result()[0]
         else:
             if price is not None:
@@ -592,10 +588,9 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
                 result = self._client.Order.Order_new(
                     clOrdID=client_ordID,
                     symbol=symbol,
+                    orderQty=volume,
                     side=side,
-                    price=price,
                     ordType="Market",
-                    execInst="ParticipateDoNotInitiate",
                 ).result()[0]
 
         return AbstractExchangeHandler.NewOrderData(

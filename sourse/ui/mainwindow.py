@@ -126,6 +126,9 @@ class MainWindow(QtWidgets.QMainWindow):
             mainwindow.marketmaker.position_updated.connect(
                 lambda x: mainwindow.data_module.update_position(x)
             )
+            mainwindow.marketmaker.server_position_updated.connect(
+                lambda x: mainwindow.data_module.update_position_server(x)
+            )
             mainwindow.marketmaker.price_updated.connect(
                 lambda x: mainwindow.data_module.update_price(x)
             )

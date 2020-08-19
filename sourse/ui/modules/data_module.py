@@ -19,13 +19,10 @@ class DataModule(BaseUIModule):
 
         hbox = QtWidgets.QHBoxLayout()
         self.layout.addLayout(hbox)
-        vbox_contracts = QtWidgets.QVBoxLayout()
-        vbox_price = QtWidgets.QVBoxLayout()
-        hbox.addLayout(vbox_contracts)
-        hbox.addLayout(vbox_price)
-        vbox_contracts.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_price.setAlignment(QtCore.Qt.AlignCenter)
 
+        vbox_contracts = QtWidgets.QVBoxLayout()
+        hbox.addLayout(vbox_contracts)
+        vbox_contracts.setAlignment(QtCore.Qt.AlignCenter)
         self.volume_label = QtWidgets.QLabel("0")
         self.volume_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox_contracts.addWidget(self.volume_label)
@@ -33,12 +30,49 @@ class DataModule(BaseUIModule):
         vol_label_desc = QtWidgets.QLabel("Contracts")
         vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
         vbox_contracts.addWidget(vol_label_desc)
+        vol_label_desc = QtWidgets.QLabel("Client")
+        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        vbox_contracts.addWidget(vol_label_desc)
 
+        vbox_contracts = QtWidgets.QVBoxLayout()
+        hbox.addLayout(vbox_contracts)
+        vbox_contracts.setAlignment(QtCore.Qt.AlignCenter)
+        self.volume_label_server = QtWidgets.QLabel("0")
+        self.volume_label_server.setAlignment(QtCore.Qt.AlignCenter)
+        vbox_contracts.addWidget(self.volume_label_server)
+
+        vol_label_desc = QtWidgets.QLabel("Contracts")
+        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        vbox_contracts.addWidget(vol_label_desc)
+        vol_label_desc = QtWidgets.QLabel("Server")
+        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        vbox_contracts.addWidget(vol_label_desc)
+
+        vbox_price = QtWidgets.QVBoxLayout()
+        hbox.addLayout(vbox_price)
+        vbox_price.setAlignment(QtCore.Qt.AlignCenter)
         self.price_label = QtWidgets.QLabel("-")
         self.price_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox_price.addWidget(self.price_label)
 
         price_label_desc = QtWidgets.QLabel("Average price")
+        vbox_price.addWidget(price_label_desc)
+        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        price_label_desc = QtWidgets.QLabel("Client")
+        vbox_price.addWidget(price_label_desc)
+        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+
+        vbox_price = QtWidgets.QVBoxLayout()
+        hbox.addLayout(vbox_price)
+        vbox_price.setAlignment(QtCore.Qt.AlignCenter)
+        self.price_label_server = QtWidgets.QLabel("-")
+        self.price_label_server.setAlignment(QtCore.Qt.AlignCenter)
+        vbox_price.addWidget(self.price_label_server)
+
+        price_label_desc = QtWidgets.QLabel("Average price")
+        vbox_price.addWidget(price_label_desc)
+        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        price_label_desc = QtWidgets.QLabel("Server")
         vbox_price.addWidget(price_label_desc)
         price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
 
@@ -85,6 +119,12 @@ class DataModule(BaseUIModule):
         self._current_position_data = position
         self.price_label.setText(str(position.price))
         self.volume_label.setText(str(position.volume))
+
+    @QtCore.pyqtSlot(object)
+    def update_position_server(self, position: MarketMaker.Position):
+        # self._current_position_data = position
+        self.price_label_server.setText(str(position.price))
+        self.volume_label_server.setText(str(position.volume))
 
     @QtCore.pyqtSlot(float)
     def update_balance(self, balance: float):
