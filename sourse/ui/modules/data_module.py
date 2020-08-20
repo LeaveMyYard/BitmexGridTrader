@@ -21,7 +21,7 @@ class DataDisplayWidget(QtWidgets.QWidget):
         vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
         vbox.setAlignment(QtCore.Qt.AlignCenter)
-        self.data_label = QtWidgets.QLabel("0")
+        self.data_label = QtWidgets.QLabel(default)
         self.data_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox.addWidget(self.data_label)
 
@@ -35,8 +35,6 @@ class DataDisplayWidget(QtWidgets.QWidget):
         set_label_font_size(desc_label, self.smaller_text_size)
         desc_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox.addWidget(desc_label)
-
-        self.setText(default)
 
     def setText(self, text: str) -> None:
         self.data_label.setText(text)
