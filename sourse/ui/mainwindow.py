@@ -17,7 +17,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         super().__init__()
         uic.loadUi("sourse/ui/mainwindow.ui", self)  # Load the .ui file
-        # # self.setWindowIcon(QtGui.QIcon("assets/icon_1.png"))
+        self.setWindowIcon(QtGui.QIcon("assets/bitcoin (1).png"))
+        self.setWindowTitle("Bitmex Marketmaker Bot")
 
         self.top_left_dockwidget: QtWidgets.QDockWidget = self.findChild(
             QtWidgets.QDockWidget, "dockWidget"
