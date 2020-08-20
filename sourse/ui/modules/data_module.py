@@ -127,7 +127,10 @@ class DataModule(BaseUIModule):
 
     @QtCore.pyqtSlot(float)
     def update_price(self, price: float):
-        if self._current_client_position_data is None:
+        if (
+            self._current_client_position_data is None
+            or self._current_client_position_data.volume == 0
+        ):
             self.client_profit.setText("-")
         else:
             unr_profit = self._current_client_position_data.volume * (
@@ -135,7 +138,10 @@ class DataModule(BaseUIModule):
             )
             self.client_profit.setText(f"{round(unr_profit, 8)} XBT")
 
-        if self._current_server_position_data is None:
+        if (
+            self._current_server_position_data is None
+            or self._current_server_position_data.volume == 0
+        ):
             self.server_profit.setText("-")
         else:
             unr_profit = self._current_server_position_data.volume * (
