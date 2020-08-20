@@ -4,140 +4,140 @@ from sourse.marketmaker import MarketMaker
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 
+def set_label_font_size(label: QtWidgets.QLabel, size: int) -> None:
+    font = label.font()
+    font.setPointSize(size)
+    label.setFont(font)
+
+
+class DataDisplayWidget(QtWidgets.QWidget):
+    smaller_text_size = 7
+
+    def __init__(
+        self, text: str, subtext: str, default: str = "", parent: QtCore.QObject = None,
+    ):
+        super().__init__(parent)
+
+        vbox = QtWidgets.QVBoxLayout()
+        self.setLayout(vbox)
+        vbox.setAlignment(QtCore.Qt.AlignCenter)
+        self.data_label = QtWidgets.QLabel("0")
+        self.data_label.setAlignment(QtCore.Qt.AlignCenter)
+        vbox.addWidget(self.data_label)
+
+        desc_label = QtWidgets.QLabel(text)
+        desc_label.setAlignment(QtCore.Qt.AlignCenter)
+        vbox.addWidget(desc_label)
+        desc_label = QtWidgets.QLabel(subtext)
+        set_label_font_size(desc_label, self.smaller_text_size)
+        desc_label.setAlignment(QtCore.Qt.AlignCenter)
+        vbox.addWidget(desc_label)
+
+        self.setText(default)
+
+    def setText(self, text: str) -> None:
+        self.data_label.setText(text)
+
+
 class DataModule(BaseUIModule):
     def _create_widgets(self):
         self.layout = QtWidgets.QVBoxLayout(self.base_widget)
         self.parent_widget.setWindowTitle("Current Settings")
         self.base_widget.setLayout(self.layout)
 
+        bigger_text_size = 14
+
         label = QtWidgets.QLabel("Your position: XBTUSD")
-        font = label.font()
-        font.setPointSize(14)
-        label.setFont(font)
+        set_label_font_size(label, bigger_text_size)
         label.setMargin(10)
         self.layout.addWidget(label)
 
         hbox = QtWidgets.QHBoxLayout()
         self.layout.addLayout(hbox)
 
-        vbox_contracts = QtWidgets.QVBoxLayout()
-        hbox.addLayout(vbox_contracts)
-        vbox_contracts.setAlignment(QtCore.Qt.AlignCenter)
-        self.volume_label = QtWidgets.QLabel("0")
-        self.volume_label.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(self.volume_label)
+        # ----- Client Contracts -----
+        self.client_contracts = DataDisplayWidget("Contracts", "Client", default="0")
+        hbox.addWidget(self.client_contracts)
 
-        vol_label_desc = QtWidgets.QLabel("Contracts")
-        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(vol_label_desc)
-        vol_label_desc = QtWidgets.QLabel("Client")
-        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(vol_label_desc)
+        # ----- Server Contracts -----
+        self.server_contracts = DataDisplayWidget("Contracts", "Server", default="0")
+        hbox.addWidget(self.server_contracts)
 
-        vbox_contracts = QtWidgets.QVBoxLayout()
-        hbox.addLayout(vbox_contracts)
-        vbox_contracts.setAlignment(QtCore.Qt.AlignCenter)
-        self.volume_label_server = QtWidgets.QLabel("0")
-        self.volume_label_server.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(self.volume_label_server)
+        # ----- Client Average Price -----
+        self.client_price = DataDisplayWidget("Average price", "Client", default="-")
+        hbox.addWidget(self.client_price)
 
-        vol_label_desc = QtWidgets.QLabel("Contracts")
-        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(vol_label_desc)
-        vol_label_desc = QtWidgets.QLabel("Server")
-        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(vol_label_desc)
-
-        vbox_price = QtWidgets.QVBoxLayout()
-        hbox.addLayout(vbox_price)
-        vbox_price.setAlignment(QtCore.Qt.AlignCenter)
-        self.price_label = QtWidgets.QLabel("-")
-        self.price_label.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_price.addWidget(self.price_label)
-
-        price_label_desc = QtWidgets.QLabel("Average price")
-        vbox_price.addWidget(price_label_desc)
-        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        price_label_desc = QtWidgets.QLabel("Client")
-        vbox_price.addWidget(price_label_desc)
-        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-
-        vbox_price = QtWidgets.QVBoxLayout()
-        hbox.addLayout(vbox_price)
-        vbox_price.setAlignment(QtCore.Qt.AlignCenter)
-        self.price_label_server = QtWidgets.QLabel("-")
-        self.price_label_server.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_price.addWidget(self.price_label_server)
-
-        price_label_desc = QtWidgets.QLabel("Average price")
-        vbox_price.addWidget(price_label_desc)
-        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        price_label_desc = QtWidgets.QLabel("Server")
-        vbox_price.addWidget(price_label_desc)
-        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        # ----- Server Average Price -----
+        self.server_price = DataDisplayWidget("Average Price", "Server", default="-")
+        hbox.addWidget(self.server_price)
 
         label = QtWidgets.QLabel("Your balance: XBTUSD")
-        font = label.font()
-        font.setPointSize(14)
-        label.setFont(font)
+        set_label_font_size(label, bigger_text_size)
         label.setMargin(10)
         self.layout.addWidget(label)
 
         hbox = QtWidgets.QHBoxLayout()
         self.layout.addLayout(hbox)
-        vbox_contracts = QtWidgets.QVBoxLayout()
-        vbox_price = QtWidgets.QVBoxLayout()
-        hbox.addLayout(vbox_contracts)
-        hbox.addLayout(vbox_price)
-        vbox_contracts.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_price.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.rbalance_label = QtWidgets.QLabel("-")
-        self.rbalance_label.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(self.rbalance_label)
+        # ----- Client Balance -----
+        self.client_balance = DataDisplayWidget("Balance", "Client", default="0 XBT")
+        hbox.addWidget(self.client_balance)
 
-        vol_label_desc = QtWidgets.QLabel("Realised balance")
-        vol_label_desc.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_contracts.addWidget(vol_label_desc)
+        # ----- Server Balance -----
+        self.server_balance = DataDisplayWidget("Balance", "Server", default="0 XBT")
+        hbox.addWidget(self.server_balance)
 
-        self.urprofit_label = QtWidgets.QLabel("-")
-        self.urprofit_label.setAlignment(QtCore.Qt.AlignCenter)
-        vbox_price.addWidget(self.urprofit_label)
+        # ----- Unr.Profit Client -----
+        self.client_profit = DataDisplayWidget("Unr. Profit", "Client", default="0")
+        hbox.addWidget(self.client_profit)
 
-        price_label_desc = QtWidgets.QLabel("Unrealised profit")
-        vbox_price.addWidget(price_label_desc)
-        price_label_desc.setAlignment(QtCore.Qt.AlignCenter)
+        # ----- Unr.Profit Server -----
+        self.server_profit = DataDisplayWidget("Unr. Profit", "Server", default="0")
+        hbox.addWidget(self.server_profit)
 
         self.layout.addSpacerItem(
             QtWidgets.QSpacerItem(1, 1, vPolicy=QtWidgets.QSizePolicy.Expanding)
         )
 
-        self._current_position_data: MarketMaker.Position = None
+        self._current_server_position_data: MarketMaker.Position = None
+        self._current_client_position_data: MarketMaker.Position = None
 
     @QtCore.pyqtSlot(object)
     def update_position(self, position: MarketMaker.Position):
-        self._current_position_data = position
-        self.price_label.setText(str(position.price) if position.volume != 0 else "-")
-        self.volume_label.setText(str(position.volume))
+        self._current_client_position_data = position
+        self.client_price.setText(str(position.price) if position.volume != 0 else "-")
+        self.client_contracts.setText(str(position.volume))
 
     @QtCore.pyqtSlot(object)
     def update_position_server(self, position: MarketMaker.Position):
-        # self._current_position_data = position
-        self.price_label_server.setText(
+        self._current_server_position_data = position
+        self.server_price.setText(
             str(position.price) if position.price is not None else "-"
         )
-        self.volume_label_server.setText(str(position.volume))
+        self.server_contracts.setText(str(position.volume))
 
     @QtCore.pyqtSlot(float)
     def update_balance(self, balance: float):
-        self.rbalance_label.setText(f"{round(balance, 8)} XBT")
+        self.client_balance.setText(f"{round(balance, 8)} XBT")
+
+    @QtCore.pyqtSlot(float)
+    def update_balance_server(self, balance: float):
+        self.server_balance.setText(f"{round(balance, 8)} XBT")
 
     @QtCore.pyqtSlot(float)
     def update_price(self, price: float):
-        if self._current_position_data is None:
-            self.urprofit_label.setText("-")
+        if self._current_client_position_data is None:
+            self.client_profit.setText("-")
         else:
-            unr_profit = self._current_position_data.volume * (
-                -1 / self._current_position_data.price + 1 / price
+            unr_profit = self._current_client_position_data.volume * (
+                -1 / self._current_client_position_data.price + 1 / price
             )
-            self.urprofit_label.setText(f"{round(unr_profit, 8)} XBT")
+            self.client_profit.setText(f"{round(unr_profit, 8)} XBT")
+
+        if self._current_server_position_data is None:
+            self.server_profit.setText("-")
+        else:
+            unr_profit = self._current_server_position_data.volume * (
+                -1 / self._current_server_position_data.price + 1 / price
+            )
+            self.server_profit.setText(f"{round(unr_profit, 8)} XBT")

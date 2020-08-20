@@ -24,6 +24,7 @@ class MarketMaker(QtCore.QObject):
     server_position_updated = QtCore.pyqtSignal(object)
     price_updated = QtCore.pyqtSignal(float)
     balance_updated = QtCore.pyqtSignal(float)
+    server_balance_updated = QtCore.pyqtSignal(float)
     error_occured = QtCore.pyqtSignal(object)
 
     @dataclass
@@ -71,7 +72,7 @@ class MarketMaker(QtCore.QObject):
         self.handler = handler
         self.update_settings(settings)
         self.position = MarketMaker.Position()
-        self.balance = 0.01
+        self.balance: float = None
 
         self.logger = init_logger(self.__class__.__name__)
 
@@ -161,9 +162,10 @@ class MarketMaker(QtCore.QObject):
                 )
 
         elif isinstance(data, AbstractExchangeHandler.BalanceUpdate):
-            self.balance = data.balance
-            self.balance_updated.emit(self.balance)
-            self.logger.debug("Updated balance from server: %s", self.balance)
+            if self.balance is None:
+                self.balance = data.balance
+                self.balance_updated.emit(self.balance)
+            self.server_balance_updated.emit(data.balance)
 
     def _on_price_changed(self, data: AbstractExchangeHandler.PriceCallback):
         self._current_price = data.price
