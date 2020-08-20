@@ -4,10 +4,10 @@
 
 ## Bitmex Grid Bot
 
-[![GitHub issues](https://img.shields.io/github/issues-raw/LeaveMyYard/BitmexMarketMaker?style=flat)](https://github.com/LeaveMyYard/BitmexMarketMaker/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/LeaveMyYard/BitmexMarketMaker)](https://github.com/LeaveMyYard/BitmexMarketMaker/pulls)
-[![License](https://img.shields.io/github/license/day8/re-frame.svg)](license.txt)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![GitHub issues](https://img.shields.io/github/issues-raw/LeaveMyYard/BitmexMarketMaker?style=flat-square)](https://github.com/LeaveMyYard/BitmexMarketMaker/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/LeaveMyYard/BitmexMarketMaker?style=flat-square)](https://github.com/LeaveMyYard/BitmexMarketMaker/pulls)
+[![License](https://img.shields.io/github/license/day8/re-frame.svg?style=flat-square)](license.txt)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 
 ## Overview
 
