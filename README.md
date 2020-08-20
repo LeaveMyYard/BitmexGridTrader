@@ -13,6 +13,8 @@
 
 This is the bitmex trading bot, created for Grid strategy on XBTUSD futures pair.
 
+Build with python, all sourse code provided.
+
 It has a PyQt5 user interface, that is easy to use.
 
 ## Installation
