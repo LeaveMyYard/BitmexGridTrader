@@ -6,7 +6,7 @@
 
 [![GitHub issues](https://img.shields.io/github/issues-raw/LeaveMyYard/BitmexGridTrader?style=flat-square)](https://github.com/LeaveMyYard/BitmexGridTrader/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/LeaveMyYard/BitmexGridTrader?style=flat-square)](https://github.com/LeaveMyYard/BitmexGridTrader/pulls)
-[![License](https://img.shields.io/github/license/day8/re-frame.svg?style=flat-square)](LICENCE.txt)
+[![License](https://img.shields.io/github/license/day8/re-frame.svg?style=flat-square)](LICENSE.txt)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 
 ## Overview
@@ -37,4 +37,4 @@ The documentation is [available here](http://day8.github.io/re-frame/). -->
 
 ## Licence
 
-Bitmex Grid Bot is [MIT licenced](LICENCE.txt)
+Bitmex Grid Bot is [MIT licenced](LICENSE.txt)
