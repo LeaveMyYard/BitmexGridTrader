@@ -138,19 +138,14 @@ class CurrentSettingsModule(BaseUIModule):
         return button
 
     def check_bot_finish_actions(self):
-        (
-            position_filled,
-            orders_canceled,
-        ) = self._marketmaker_finished_predicate()
+        (position_filled, orders_canceled,) = self._marketmaker_finished_predicate()
 
         if not position_filled or not orders_canceled:
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Question)
             msg.setWindowTitle("The bot is unfinished")
             msg.setText("The bot work in unfinished, choose what to do")
-            stop_button = msg.addButton(
-                "Just stop", QtWidgets.QMessageBox.AcceptRole
-            )
+            stop_button = msg.addButton("Just stop", QtWidgets.QMessageBox.AcceptRole)
 
             cancel_orders = None
             fill_position = None
@@ -185,9 +180,7 @@ class CurrentSettingsModule(BaseUIModule):
                     "Cancel orders", QtWidgets.QMessageBox.AcceptRole,
                 )
 
-            cancel_button = msg.addButton(
-                "Cancel", QtWidgets.QMessageBox.RejectRole
-            )
+            cancel_button = msg.addButton("Cancel", QtWidgets.QMessageBox.RejectRole)
             msg.exec()
 
             if msg.clickedButton() == cancel_button:
