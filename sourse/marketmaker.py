@@ -72,7 +72,7 @@ class MarketMaker(QtCore.QObject):
         self.handler = handler
         self.update_settings(settings)
         self.position = MarketMaker.Position()
-        self.balance: float = None
+        self.balance: float = float("nan")
 
         self.logger = init_logger(self.__class__.__name__)
 

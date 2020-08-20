@@ -26,9 +26,12 @@ class DataDisplayWidget(QtWidgets.QWidget):
         vbox.addWidget(self.data_label)
 
         desc_label = QtWidgets.QLabel(text)
+        desc_label.setMargin(-2)
         desc_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox.addWidget(desc_label)
+
         desc_label = QtWidgets.QLabel(subtext)
+        desc_label.setMargin(-2)
         set_label_font_size(desc_label, self.smaller_text_size)
         desc_label.setAlignment(QtCore.Qt.AlignCenter)
         vbox.addWidget(desc_label)

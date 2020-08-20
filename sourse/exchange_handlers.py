@@ -17,6 +17,7 @@ import time
 import pandas as pd
 import typing
 import urllib
+import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import collections
