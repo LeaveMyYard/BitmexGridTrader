@@ -32,7 +32,7 @@ The documentation is [available here](http://day8.github.io/re-frame/). -->
 ## TODO
 
 * Add more exchanges to trade on (Binance Futures, BitFinex etc)
-* Move exchange handlers to the other repo, make it a package
+* DONE ~~Move exchange handlers to the other repo, make it a package~~
 * Make it into a pip package and make possible for program to be used from code
 * Compile a documentation
 
