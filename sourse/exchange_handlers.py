@@ -14,6 +14,7 @@ import json
 import random
 import threading
 import time
+from typing import overload
 import pandas as pd
 import typing
 import urllib
@@ -32,6 +33,11 @@ class AbstractExchangeHandler(metaclass=abc.ABCMeta):
     def __init__(self, public_key: str, private_key: str):
         self._public_key = public_key
         self._private_key = private_key
+
+    @abc.abstractmethod
+    @staticmethod
+    def get_pairs_list() -> typing.List[str]:
+        ...
 
     @dataclass
     class KlineCallback:
@@ -299,6 +305,10 @@ class BitmexExchangeHandler(AbstractExchangeHandler):
             test=False, api_key=self._public_key, api_secret=self._private_key
         )
         self.logger = init_logger(self.__class__.__name__)
+
+    @staticmethod
+    def get_pairs_list() -> typing.List[str]:
+        return ["XBTUSD"]
 
     def start_kline_socket(
         self,
