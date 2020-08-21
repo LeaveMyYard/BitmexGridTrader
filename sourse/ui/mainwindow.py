@@ -7,7 +7,7 @@ import traceback
 import pandas as pd
 import threading
 from sourse.marketmaker import MarketMaker
-from sourse.exchange_handlers import BitmexExchangeHandler
+from crypto_futures_py import BitmexExchangeHandler
 import typing
 
 

@@ -1,6 +1,6 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
 from PyQt5 import QtWidgets, QtCore, QtGui
-from sourse.exchange_handlers import AbstractExchangeHandler
+from crypto_futures_py import AbstractExchangeHandler
 import dataclasses
 import typing
 import numpy as np
@@ -24,8 +24,12 @@ class CurrentOrdersModule(BaseUIModule):
         self.parent_widget.setWindowTitle("Orders")
         self.base_widget.setLayout(self.layout)
 
-        self._order_dict = {}
-        self._historical_order_dict = {}
+        self._order_dict: typing.Dict[
+            int, typing.Tuple[int, AbstractExchangeHandler.OrderUpdate]
+        ] = {}
+        self._historical_order_dict: typing.Dict[
+            int, typing.Tuple[int, AbstractExchangeHandler.OrderUpdate]
+        ] = {}
 
         self.counter = 0
         self.historical_counter = 0

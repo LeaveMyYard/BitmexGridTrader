@@ -8,7 +8,7 @@ import typing
 from datetime import datetime
 from dataclasses import dataclass
 
-from sourse.exchange_handlers import AbstractExchangeHandler, BitmexExchangeHandler
+from crypto_futures_py import AbstractExchangeHandler, BitmexExchangeHandler
 from sourse.logger import init_logger
 from PyQt5 import QtCore
 

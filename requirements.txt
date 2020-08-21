@@ -5,3 +5,4 @@ pyqt5
 qdarkstyle
 pyqtgraph
 pandas
+crypto-futures-py>=0.1
