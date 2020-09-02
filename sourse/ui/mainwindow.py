@@ -130,11 +130,14 @@ class MainWindow(QtWidgets.QMainWindow):
             mainwindow.marketmaker.server_position_updated.connect(
                 lambda x: mainwindow.data_module.update_position_server(x)
             )
-            mainwindow.marketmaker.price_updated.connect(
-                lambda x: mainwindow.data_module.update_price(x)
-            )
             mainwindow.marketmaker.balance_updated.connect(
                 lambda x: mainwindow.data_module.update_balance(x)
+            )
+            mainwindow.marketmaker.server_balance_updated.connect(
+                lambda x: mainwindow.data_module.update_balance_server(x)
+            )
+            mainwindow.marketmaker.price_updated.connect(
+                lambda x: mainwindow.data_module.update_price(x)
             )
 
             asyncio.run_coroutine_threadsafe(

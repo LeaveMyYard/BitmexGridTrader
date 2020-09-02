@@ -120,7 +120,13 @@ class MarketMaker(QtCore.QObject):
 
     def _on_user_update(self, data: AbstractExchangeHandler.UserUpdate):
         if isinstance(data, AbstractExchangeHandler.OrderUpdate):
-            self._current_orders[data.orderID] = data.status
+            # Ignore all non-client orders
+            if data.client_orderID == "":
+                return
+
+            if data.orderID != "":
+                self._current_orders[data.orderID] = data.status
+
             self.logger.debug(
                 "Order %s (%s;%s): %s",
                 data.orderID,
@@ -151,7 +157,7 @@ class MarketMaker(QtCore.QObject):
             if (
                 data.size != self.position.volume
                 or data.entry_price != self.position.price
-                and data.size == self.position.volume == 0
+                and data.size != 0
             ):
                 self.logger.warning(
                     "Position, got from server differes with the calculated one: (%s; %s) vs (%s; %s)",
@@ -162,7 +168,7 @@ class MarketMaker(QtCore.QObject):
                 )
 
         elif isinstance(data, AbstractExchangeHandler.BalanceUpdate):
-            if self.balance is None:
+            if self.balance != self.balance:
                 self.balance = data.balance
                 self.balance_updated.emit(self.balance)
             self.server_balance_updated.emit(data.balance)

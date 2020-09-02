@@ -1,4 +1,5 @@
 from sourse.ui.modules.base_qdockwidget_module import BaseUIModule
+from datetime import datetime
 from PyQt5 import QtWidgets, QtCore, QtGui
 from crypto_futures_py import AbstractExchangeHandler
 import dataclasses
@@ -12,45 +13,36 @@ class CurrentOrdersModule(BaseUIModule):
     rebuild_grid = QtCore.pyqtSignal()
 
     def _create_widgets(self):
-        """
-        
-
-        Returns
-        -------
-        None.
-
-        """
         self.layout = QtWidgets.QHBoxLayout(self.base_widget)
         self.parent_widget.setWindowTitle("Orders")
         self.base_widget.setLayout(self.layout)
 
         self._order_dict: typing.Dict[
-            int, typing.Tuple[int, AbstractExchangeHandler.OrderUpdate]
+            str, typing.Tuple[int, AbstractExchangeHandler.OrderUpdate]
         ] = {}
         self._historical_order_dict: typing.Dict[
-            int, typing.Tuple[int, AbstractExchangeHandler.OrderUpdate]
+            str, typing.Tuple[int, AbstractExchangeHandler.OrderUpdate]
         ] = {}
 
         self.counter = 0
         self.historical_counter = 0
 
         self.horizontalHeaderLabelsList = [
-            "Order id",
-            "Client order id",
-            "Status",
-            "Price",
-            "Average price",
-            "Fee",
-            "Fee asset",
-            "Volume",
-            "Volume realized",
-            "Time",
-            "id",
+            "Order id",  # 0
+            "Client order id",  # 1
+            "Status",  # 2
+            "Symbol",  # 3
+            "Price",  # 4
+            "Average price",  # 5
+            "Fee",  # 6
+            "Fee asset",  # 7
+            "Volume",  # 8
+            "Volume realized",  # 9
+            "Time",  # 10
+            "id",  # 11
         ]
 
-        self.colorfull_dictionary = {2: 2, 3: 7, 4: 7, 5: 5, 7: 7, 8: 8}
-
-        self.color = Colors()
+        self.colorfull_dictionary = {2: 2, 4: 8, 5: 8, 6: 6, 8: 8, 9: 9}
 
         self.table = QtWidgets.QTableWidget(
             len(self._order_dict), len(self.horizontalHeaderLabelsList)
@@ -72,7 +64,8 @@ class CurrentOrdersModule(BaseUIModule):
             header.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
             header_historical.setSectionResizeMode(i, QtWidgets.QHeaderView.Stretch)
         header_historical.setSectionResizeMode(
-            10, QtWidgets.QHeaderView.ResizeToContents
+            len(self.horizontalHeaderLabelsList) - 1,
+            QtWidgets.QHeaderView.ResizeToContents,
         )
 
         self.menu = QtWidgets.QMenu()
@@ -82,16 +75,39 @@ class CurrentOrdersModule(BaseUIModule):
         self.tabwidget.addTab(self.table_historical, "Historical orders")
 
         self.layout.addWidget(self.tabwidget)
-        self.table.sortItems(10, QtCore.Qt.AscendingOrder)
-        self.table_historical.sortItems(10, QtCore.Qt.AscendingOrder)
+        self.table.sortItems(
+            len(self.horizontalHeaderLabelsList) - 1, QtCore.Qt.AscendingOrder
+        )
+        self.table_historical.sortItems(
+            len(self.horizontalHeaderLabelsList) - 1, QtCore.Qt.AscendingOrder
+        )
 
-        self.table.setColumnHidden(10, True)
-        self.table_historical.setColumnHidden(10, True)
+        self.table.setColumnHidden(len(self.horizontalHeaderLabelsList) - 1, True)
+        self.table_historical.setColumnHidden(
+            len(self.horizontalHeaderLabelsList) - 1, True
+        )
 
         self.table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.generateMenu)
 
         self.table.viewport().installEventFilter(self)
+
+        self._stashed_orders: typing.List[
+            typing.Tuple[AbstractExchangeHandler.OrderUpdate, bool]
+        ] = []
+
+        self._orders_to_delete: typing.Dict[str, datetime] = {}
+
+        self.order_update_timer = QtCore.QTimer(self)
+        self.order_update_timer.setInterval(200)
+        self.order_update_timer.timeout.connect(self._update_orders_threadsafe)
+        self.order_update_timer.start()
+
+    def get_current_orders(self) -> typing.List[AbstractExchangeHandler.OrderUpdate]:
+        return [v[1] for v in self._order_dict.values()]
+
+    def get_historical_orders(self) -> typing.List[AbstractExchangeHandler.OrderUpdate]:
+        return [v[1] for v in self._historical_order_dict.values()]
 
     def eventFilter(self, source, event):
         if (
@@ -125,30 +141,37 @@ class CurrentOrdersModule(BaseUIModule):
         except:
             pass
 
+    @QtCore.pyqtSlot()
+    def _update_orders_threadsafe(self):
+        for inp in self._stashed_orders.copy():
+            self.add_order(*inp)
+            self._stashed_orders.remove(inp)
+
+        for order, time in self._orders_to_delete.copy().items():
+            if order not in self._order_dict:
+                del self._orders_to_delete[order]
+            elif (datetime.now() - time).total_seconds() > 3:
+                self.remove_order(order)
+                del self._orders_to_delete[order]
+
+    def add_order_threadsafe(
+        self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
+    ):
+        self._stashed_orders.append((order, historical_table))
+
     def add_order(
         self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
     ) -> str:
-        """
-        
-
-        Parameters
-        ----------
-        order : AbstractExchangeHandler.OrderUpdate
-            DESCRIPTION.
-        historical_table : bool, optional
-            DESCRIPTION. The default is False.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        """
         order_id = order.client_orderID if order.client_orderID != "" else order.orderID
+
+        if order.status in ["FILLED", "CANCELED", "FAILED", "EXPIRED"]:
+            self._orders_to_delete[order_id] = datetime.now()
 
         current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
         current_sorted_type = self.table.horizontalHeader().sortIndicatorOrder()
-        self.table.sortItems(10, QtCore.Qt.AscendingOrder)
+        self.table.sortItems(
+            len(self.horizontalHeaderLabelsList) - 1, QtCore.Qt.AscendingOrder
+        )
         self.table.setSortingEnabled(False)
 
         current_sorted_historical_index = (
@@ -179,7 +202,7 @@ class CurrentOrdersModule(BaseUIModule):
 
                 self.table.setItem(
                     len(self._order_dict) - 1,
-                    10,
+                    len(self.horizontalHeaderLabelsList) - 1,
                     self.QTableWidgetIntegerItem(str(self.counter)),
                 )
                 self.counter += 1
@@ -206,7 +229,7 @@ class CurrentOrdersModule(BaseUIModule):
 
                 self.table_historical.setItem(
                     len(self._historical_order_dict) - 1,
-                    10,
+                    len(self.horizontalHeaderLabelsList) - 1,
                     self.QTableWidgetIntegerItem(str(self.historical_counter)),
                 )
                 self.historical_counter += 1
@@ -224,28 +247,32 @@ class CurrentOrdersModule(BaseUIModule):
     def _edit_order(
         self, order: AbstractExchangeHandler.OrderUpdate, historical_table: bool = False
     ) -> str:
-        """
-        
-
-        Parameters
-        ----------
-        order : AbstractExchangeHandler.OrderUpdate
-            DESCRIPTION.
-        historical_table : bool, optional
-            DESCRIPTION. The default is False.
-
-        Returns
-        -------
-        str
-            DESCRIPTION.
-
-        """
         order_id = order.client_orderID if order.client_orderID != "" else order.orderID
 
         if historical_table:
+            for i in range(self.table_historical.rowCount()):
+                if str(order_id) == str(
+                    self.table_historical.item(
+                        i, 1 if order.client_orderID != "" else 0
+                    ).text()
+                ):
+                    row = i
+                    break
+            else:
+                raise ValueError(f"{order_id} not historical table")
+
             order_index = self._historical_order_dict[order_id][0]
             self._historical_order_dict[order_id] = order_index, order
         else:
+            for i in range(self.table.rowCount()):
+                if str(order_id) == str(
+                    self.table.item(i, 1 if order.client_orderID != "" else 0).text()
+                ):
+                    row = i
+                    break
+            else:
+                raise ValueError(f"{order_id} not historical table")
+
             order_index = self._order_dict[order_id][0]
             self._order_dict[order_id] = order_index, order
 
@@ -255,13 +282,13 @@ class CurrentOrdersModule(BaseUIModule):
             if key == "message":
                 continue
             elif not historical_table:
-                self.table.item(order_index, i).setText(str(value))
-                self.table.item(order_index, i).setForeground(
+                self.table.item(row, i).setText(str(value))
+                self.table.item(row, i).setForeground(
                     QtGui.QBrush(QtGui.QColor(*color))
                 )
             else:
-                self.table_historical.item(order_index, i).setText(str(value))
-                self.table_historical.item(order_index, i).setForeground(
+                self.table_historical.item(row, i).setText(str(value))
+                self.table_historical.item(row, i).setForeground(
                     QtGui.QBrush(QtGui.QColor(*color))
                 )
 
@@ -278,44 +305,59 @@ class CurrentOrdersModule(BaseUIModule):
             try:
                 if i == 5:
                     if float(j) < 0:
-                        color = self.color.limegreen
+                        color = Colors.limegreen
                     elif float(j) > 0:
-                        color = self.color.orangered
+                        color = Colors.orangered
                     else:
-                        color = self.color.yellow
+                        color = Colors.yellow
                     value = np.format_float_positional(value)
                 elif float(j) > 0:
-                    color = self.color.limegreen
+                    color = Colors.limegreen
                 elif float(j) < 0:
-                    color = self.color.orangered
+                    color = Colors.orangered
                 else:
-                    color = self.color.yellow
+                    color = Colors.yellow
             except:
                 color = (
-                    self.color.limegreen
+                    Colors.limegreen
                     if str(j) == "FILLED"
-                    else self.color.orangered
+                    else Colors.orangered
                     if str(j) == "CANCELED"
-                    else self.color.yellow
+                    else Colors.yellow
                     if str(j) == "NEW"
-                    else self.color.darkorange
+                    else Colors.darkorange
                     if str(j) == "PENDING"
-                    else self.color.white
+                    else Colors.white
                 )
         else:
-            color = self.color.white
+            color = Colors.white
         return color, value
 
+    def remove_order(self, order_id) -> None:
+
+        for i in range(self.table.rowCount()):
+            if str(order_id) == str(self.table.item(i, 1).text()):
+                row = i
+                break
+        else:
+            raise ValueError(f"{order_id} not in 'Client order id' column")
+
+        current_sorted_index = self.table.horizontalHeader().sortIndicatorSection()
+        current_sorted_type = self.table.horizontalHeader().sortIndicatorOrder()
+        self.table.sortItems(
+            len(self.horizontalHeaderLabelsList) - 1, QtCore.Qt.AscendingOrder
+        )
+        self.table.setSortingEnabled(False)
+
+        self.add_order(self._order_dict[order_id][1], True)
+        self.table.removeRow(row)
+
+        del self._order_dict[order_id]
+
+        self.table.setSortingEnabled(True)
+        self.table.sortItems(current_sorted_index, current_sorted_type)
+
     def remove_all_orders(self) -> None:
-        """
-        
-
-        Returns
-        -------
-        None
-            DESCRIPTION.
-
-        """
         self.table.setSortingEnabled(False)
 
         self._transfer_table()
@@ -325,55 +367,19 @@ class CurrentOrdersModule(BaseUIModule):
         self.table.setSortingEnabled(True)
 
     def _transfer_table(self) -> None:
-        """
-        
-
-        Returns
-        -------
-        None
-            DESCRIPTION.
-
-        """
         for i in self._order_dict:
             self.add_order(self._order_dict[i][1], True)
 
     class QTableWidgetIntegerItem(QtWidgets.QTableWidgetItem):
         def __lt__(self, other):
-            """
-            
-
-            Parameters
-            ----------
-            other : TYPE
-                DESCRIPTION.
-
-            Returns
-            -------
-            TYPE
-                DESCRIPTION.
-
-            """
-            return int(self.text()) < int(other.text())
+            try:
+                return int(self.text()) < int(other.text())
+            except ValueError:
+                return self.text() < other.text()
 
     def createItem(
         self, text: str, color: typing.Tuple[int, int, int]
     ) -> QtWidgets.QTableWidgetItem:
-        """
-        
-
-        Parameters
-        ----------
-        text : str
-            DESCRIPTION.
-        color : typing.Tuple[int, int, int]
-            DESCRIPTION.
-
-        Returns
-        -------
-        tableWidgetItem : TYPE
-            DESCRIPTION.
-
-        """
         tableWidgetItem = QtWidgets.QTableWidgetItem(text)
         tableWidgetItem.setForeground(QtGui.QBrush(QtGui.QColor(*color)))
         tableWidgetItem.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
@@ -382,25 +388,6 @@ class CurrentOrdersModule(BaseUIModule):
 
 
 class Colors:
-    def __init__(self):
-        self.red = (255, 0, 0)
-        self.green = (0, 255, 0)
-        self.blue = (0, 0, 255)
-
-        self.white = (255, 255, 255)
-        self.black = (0, 0, 0)
-
-        self.yellow = (255, 255, 0)
-        self.darkorange = (255, 140, 0)
-
-        self.orangered = (255, 69, 0)
-        self.limegreen = (50, 205, 50)
-
-        self.neutralred = (239, 83, 80)
-        self.neutralgreen = (38, 166, 154)
-
-
-class BetterColors:  # TODO Replace Colors usage with BetterColors
     red = (255, 0, 0)
     green = (0, 255, 0)
     blue = (0, 0, 255)
