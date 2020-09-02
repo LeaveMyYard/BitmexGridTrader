@@ -259,22 +259,6 @@ class MarketMaker(QtCore.QObject):
         await self.cancel_orders()
         orders = self.__current_grid_orders = self._generate_orders()
         self.grid_updates.emit(orders)
-        for order in orders:
-            order_update = AbstractExchangeHandler.OrderUpdate(
-                orderID="",
-                client_orderID=order[3],
-                status="PENDING",
-                price=order[1],
-                average_price=-1,
-                fee=0,
-                fee_asset="XBT",
-                volume=order[2] if order[0] == "Buy" else -order[2],
-                volume_realized=0,
-                time=None,
-                message={},
-            )
-
-            self.order_updated.emit(order_update)
         await self.create_orders(orders)
 
     async def start(self):
