@@ -167,6 +167,9 @@ class MarketMaker(QtCore.QObject):
                     self.position.volume,
                 )
 
+                self.position.price = data.price
+                self.position.volume = data.volume
+
         elif isinstance(data, AbstractExchangeHandler.BalanceUpdate):
             if self.balance != self.balance:
                 self.balance = data.balance
