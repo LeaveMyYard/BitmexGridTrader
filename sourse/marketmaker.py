@@ -119,6 +119,9 @@ class MarketMaker(QtCore.QObject):
         self.balance_updated.emit(self.balance)
 
     def _on_user_update(self, data: AbstractExchangeHandler.UserUpdate):
+        if data.symbol != "XBTUSD":
+            return
+
         if isinstance(data, AbstractExchangeHandler.OrderUpdate):
             # Ignore all non-client orders
             if data.client_orderID == "":
